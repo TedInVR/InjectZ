@@ -1,0 +1,296 @@
+[
+  {
+    "flag": "--autocrop",
+    "help": "autocrop mode. automatically removes black bars. BLACK_TB: Removes only the top and bottom black bars. BLACK: Automatically removes black bars from all sides. FLAT_TB: Removes only the top and bottom flat-color borders.FLAT: Removes flat-color borders. ",
+    "action": "",
+    "choices": [
+      "BLACK_TB",
+      "BLACK",
+      "FLAT_TB",
+      "FLAT"
+    ],
+    "multiple": false,
+    "default": "None",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--batch-size",
+    "help": "batch size. ignored when --low-vram",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "2",
+    "defaultLabel": "2"
+  },
+  {
+    "flag": "--compile",
+    "help": "compile model if possible",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--convergence-mode",
+    "help": "auto convergence mode",
+    "action": "",
+    "choices": [
+      "constant",
+      "sod_v1"
+    ],
+    "multiple": false,
+    "default": "constant",
+    "defaultLabel": "constant"
+  },
+  {
+    "flag": "--disable-amp",
+    "help": "disable AMP for some special reason",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--disable-exif-transpose",
+    "help": "Disable EXIF orientation transpose",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--edge-dilation",
+    "help": "loop count of edge dilation. <x> <y> or <xy>",
+    "action": "",
+    "choices": [],
+    "multiple": true,
+    "default": "[2, 1]",
+    "defaultLabel": "2 1"
+  },
+  {
+    "flag": "--gpu",
+    "help": "GPU device id. -1 for CPU",
+    "action": "",
+    "choices": [],
+    "multiple": true,
+    "default": "IW3 default",
+    "defaultLabel": "0"
+  },
+  {
+    "flag": "--inpaint-max-width",
+    "help": "max width of inpaint result",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "None",
+    "defaultLabel": "Automatic"
+  },
+  {
+    "flag": "--inpaint-model",
+    "help": "inpaint model name defined in iw3/inpaint_models.yml",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "None",
+    "defaultLabel": "light_inpaint_v1"
+  },
+  {
+    "flag": "--ipd-offset",
+    "help": "IPD Offset (width scale %%). 0-10 is reasonable value for Full SBS",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "0",
+    "defaultLabel": "0"
+  },
+  {
+    "flag": "--keep-aspect-ratio",
+    "help": "keep aspect ratio when resizing",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--limit-resolution",
+    "help": "if the source resolution is lower than --resolution, the depth resolution will be limited to the source resolution.",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--low-vram",
+    "help": "disable batch processing for low memory GPU",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--mapper",
+    "help": "(re-)mapper function for depth. if auto, div_6 for ZoeDepth model, none for DepthAnything/DepthPro model. directly using this option is not recommended. use --foreground-scale instead.",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Automatic"
+  },
+  {
+    "flag": "--mapper-type",
+    "help": "mapper type for foreground scaling level",
+    "action": "",
+    "choices": [
+      "div",
+      "mul",
+      "shift"
+    ],
+    "multiple": false,
+    "default": "None",
+    "defaultLabel": "Automatic"
+  },
+  {
+    "flag": "--mask-inner-dilation",
+    "help": "loop count of inner mask dilation",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "0",
+    "defaultLabel": "0"
+  },
+  {
+    "flag": "--mask-outer-dilation",
+    "help": "loop count of outer mask dilation",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "0",
+    "defaultLabel": "0"
+  },
+  {
+    "flag": "--max-output-height",
+    "help": "limit output height for cardboard players",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "No limit"
+  },
+  {
+    "flag": "--max-output-width",
+    "help": "limit output width for cardboard players",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "No limit"
+  },
+  {
+    "flag": "--metadata",
+    "help": "Add metadata",
+    "action": "",
+    "choices": [
+      "filename"
+    ],
+    "multiple": false,
+    "default": "None",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--pad",
+    "help": "pad_size = round(width * pad) // 2",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "0 (no padding)"
+  },
+  {
+    "flag": "--pad-mode",
+    "help": "padding mode",
+    "action": "",
+    "choices": [
+      "tblr",
+      "tb",
+      "lr",
+      "16:9",
+      "top"
+    ],
+    "multiple": false,
+    "default": "tblr",
+    "defaultLabel": "tblr"
+  },
+  {
+    "flag": "--resolution",
+    "help": "input resolution(small side) for depth model",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Automatic"
+  },
+  {
+    "flag": "--rotate-left",
+    "help": "Rotate 90 degrees to the left(counterclockwise)",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--rotate-right",
+    "help": "Rotate 90 degrees to the right(clockwise)",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--stereo-width",
+    "help": "input width for row_flow_v3/row_flow_v2 model",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Automatic"
+  },
+  {
+    "flag": "--synthetic-view",
+    "help": "the side that generates synthetic view.when `right`, the left view will be the original input image/frame and only the right will be synthesized.",
+    "action": "",
+    "choices": [
+      "both",
+      "right",
+      "left"
+    ],
+    "multiple": false,
+    "default": "both",
+    "defaultLabel": "both"
+  },
+  {
+    "flag": "--tta",
+    "help": "Use flip augmentation on depth model",
+    "action": "store_true",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Off"
+  },
+  {
+    "flag": "--warp-steps",
+    "help": "warp steps for row_flow_v3",
+    "action": "",
+    "choices": [],
+    "multiple": false,
+    "default": "IW3 default",
+    "defaultLabel": "Automatic"
+  }
+]

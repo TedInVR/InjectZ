@@ -1,0 +1,190 @@
+[
+  {
+    "file": ".gitignore",
+    "sha256": "3cba19429d46a016831d67e3e0791b1e5d4991f27f1fcde82776d06d6d2ccfad"
+  },
+  {
+    "file": "App/InjectZ.swift",
+    "sha256": "8e1a1a67803a967293d3e37df7af424bb71b916cc5f0c5f15a7f78271e621e96"
+  },
+  {
+    "file": "Assets/InjectZ.icns",
+    "sha256": "26d8b0d06d991f8b314d280f89f9c33193f36a4ce4877f799d9c49e06b16b5fc"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_128x128.png",
+    "sha256": "638881593c04b4bfde4a76e8492bd237f1c7dc04b2130bff924e9d5e72ea2395"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_128x128@2x.png",
+    "sha256": "b556da1e19ae195a3a990def1744bd5cb39750dffd37d5a28642fece3080f77a"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_16x16.png",
+    "sha256": "8c3a2c35820dabe92f85ac601342b8bb2c64aeafadae2b31819f39534ebfb1a2"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_16x16@2x.png",
+    "sha256": "b7bf30da266ed75e8238b975e6dd0f5581a6242c35d9e2b9b24cbc0435902bba"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_256x256.png",
+    "sha256": "b556da1e19ae195a3a990def1744bd5cb39750dffd37d5a28642fece3080f77a"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_256x256@2x.png",
+    "sha256": "65cc8dbf2844b1773b3b496e46ff05f8053981f65a206087c0349819573ab084"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_32x32.png",
+    "sha256": "b7bf30da266ed75e8238b975e6dd0f5581a6242c35d9e2b9b24cbc0435902bba"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_32x32@2x.png",
+    "sha256": "37b9554c56422f09ec95041627d6bd18b5163bc5f3c5f7185b5aa21f3591327d"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_512x512.png",
+    "sha256": "65cc8dbf2844b1773b3b496e46ff05f8053981f65a206087c0349819573ab084"
+  },
+  {
+    "file": "Assets/InjectZ.iconset/icon_512x512@2x.png",
+    "sha256": "5e3613cb0f23397bd36a422cae4755541fb5f1689f2ccbb22dcde55c8bd0f5d8"
+  },
+  {
+    "file": "Assets/InjectZHeader.png",
+    "sha256": "65cc8dbf2844b1773b3b496e46ff05f8053981f65a206087c0349819573ab084"
+  },
+  {
+    "file": "CHANGELOG.md",
+    "sha256": "e35191589942ab555276d7c204462098856b2aa736f3a78f93695d0b2a301b0c"
+  },
+  {
+    "file": "Docs/ARCHITECTURE.md",
+    "sha256": "b87f8c52e058cfdaa49949b2a2fa8972e2061e217bb50fd41d0c6d26b380bbe1"
+  },
+  {
+    "file": "Docs/DEVELOPMENT_LOG.md",
+    "sha256": "9681b64bd199ebb76673599372d3c74c28d5fed31de1f94c98f7afd749e655dc"
+  },
+  {
+    "file": "Docs/RELEASE_CHECKLIST.md",
+    "sha256": "b9905ad82c2bc587c01b845cac5ef9fe1daf08fd65dfb0acd75a5af271183bf4"
+  },
+  {
+    "file": "Docs/SETUP.md",
+    "sha256": "7b2fd78a8ab0b7a6e01440753501999e4b6e0c7c289f7b4c618b19ca7288fde3"
+  },
+  {
+    "file": "Docs/THIRD_PARTY.md",
+    "sha256": "44d2354ec9fd1313fd3d4f0df702b57e5f8f9137ad6fa0dcf04bacc7cee659ef"
+  },
+  {
+    "file": "IW3/IW3SettingHelp.json",
+    "sha256": "ece76b480e0182faedba42fd80e419ba7be7e7fc338f8e2ba1fc09058e4a4763"
+  },
+  {
+    "file": "IW3/IW3Settings.json",
+    "sha256": "66ddfa412752b1419b8c9a06ed9358da9cbddec26abb3ee7945d89386c77782e"
+  },
+  {
+    "file": "IW3/create_layered_psd.py",
+    "sha256": "2966a78cfa3f7836b5507300dc995a17707942568bbeead73c1161b2a96a5fcf"
+  },
+  {
+    "file": "IW3/photo_iw3.py",
+    "sha256": "4d65f75669d3b29487dc6bca3b4605e43d03ebcd271a4c0863c4711bd9e1c1c9"
+  },
+  {
+    "file": "README.md",
+    "sha256": "c03e445cf9885274daf6fa7cf9c1f37f4a3cd42cb60fcd3d637230a34cd7ada4"
+  },
+  {
+    "file": "Reframe/ExportEditedAlbum.applescript",
+    "sha256": "f5fa3b8784c66be80161e64735b1fc2a02f46070f7dbc09b67b5394626f8324f"
+  },
+  {
+    "file": "Reframe/ExportSelectedEye.applescript",
+    "sha256": "588845f8409c93204191b7872a1e10846651bf2bc4c2383abaeba18a43f6fc88"
+  },
+  {
+    "file": "Reframe/ExportSingleRight.applescript",
+    "sha256": "9a2bb6c3bcb702cd0d38e352e9aac6efed7881686fc99540e037240f18aa9dc6"
+  },
+  {
+    "file": "Reframe/FinishReframe.py",
+    "sha256": "454b22f8b49aa69f0d662f5a72289a77e1813d91395f7b0776ab12e4b621000f"
+  },
+  {
+    "file": "Reframe/FinishSingleRight.py",
+    "sha256": "9147a8751d2b7ebd1dd0c4b2125b472b34946140791597b05e6e613607c7a0cf"
+  },
+  {
+    "file": "Reframe/ImportWorkingCopies.applescript",
+    "sha256": "a3a73fc2808795efc60465be29e5864c0a288cd3b7173532aea74cc6d16e8911"
+  },
+  {
+    "file": "Reframe/LibraryGuard.swift",
+    "sha256": "378be176e7f0b0390501945b2104bf74405181f522ca954d7f59c25e43e0e09c"
+  },
+  {
+    "file": "Reframe/ReadSelectedFilename.applescript",
+    "sha256": "4180d061efbf4ba703a5ba426780561a5486b6bca62d9b5e5049a5c628afe3f5"
+  },
+  {
+    "file": "Reframe/ReframeController.swift",
+    "sha256": "cf498ce64f464fb24faf83273cd4aca3dcf17025f036b1091a5accef16d997dc"
+  },
+  {
+    "file": "Reframe/RemoveCompletedAlbum.applescript",
+    "sha256": "5389a0a7dab860c7775027efb853cc5a8d301d9600f3dbf50a2dd6c16e3885ae"
+  },
+  {
+    "file": "Reframe/SelectRight.applescript",
+    "sha256": "2cec01cfae659575ef49d7ffc25c74a3df747228652e36e4da34097fe380c4f0"
+  },
+  {
+    "file": "Reframe/SharedStereoFormats.py",
+    "sha256": "b516c6bfbabbf669560e4de998988b6b0cd57a4c177b030b9b7a4f6490b6bcf1"
+  },
+  {
+    "file": "Reframe/StereoAssembler.py",
+    "sha256": "aa877c2be4a5ce4091d9e62ebf6e02a1370fe67b4628f456ad9d8434fdce49a6"
+  },
+  {
+    "file": "Reframe/WindowGuard.py",
+    "sha256": "0137be93b3b9806f271cb9b7343ddafd00fde5ec51e7df060b1a74fe586e81b3"
+  },
+  {
+    "file": "SHARP/EdgeSoftener.py",
+    "sha256": "c35437f1eac72416fe59a05c454677781236503bc93ef882cc8492a52b5498cd"
+  },
+  {
+    "file": "SHARP/injectz_engine.py",
+    "sha256": "267b98408d2ef552349e9f5612af0a5b46b2aa77d9ae77a896114685ecd7d133"
+  },
+  {
+    "file": "SHARP/injectz_sharp_render.py",
+    "sha256": "6967945fe2ae2e4248302473d92a0d90ecd9e15666eb3f0080cc2cd0c3ca60e4"
+  },
+  {
+    "file": "SNAPSHOT_VERSION",
+    "sha256": "866b1c75de5b37144e24497c3121b7cc8995902789cf94c143a4147dcd9a144b"
+  },
+  {
+    "file": "Setup/AppBundleMetadata.json",
+    "sha256": "c83c5235f0206d399550dd82f95f13c4811d5079ac565d157bc0bde37b3db5bd"
+  },
+  {
+    "file": "Setup/BUILD_SOURCE.command",
+    "sha256": "9f038cf79f787c4a8f0898ef4f4094e2294ac80feaa430a4cfd785d24ca301c8"
+  },
+  {
+    "file": "Setup/DependencyInventory.json",
+    "sha256": "413df8ce0a73a245a9fb86743351b35e4103718bb387f62bdd1d626df52b0a90"
+  },
+  {
+    "file": "UPLOAD_TO_GITHUB.txt",
+    "sha256": "71756b23c99dc1eaf24d0bec06cee1131e53e093f83482b323ad8a002bafcc5b"
+  }
+]

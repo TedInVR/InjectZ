@@ -1,22 +1,36 @@
-# InjectZ
+# Inject Z
 
-InjectZ is a macOS photo-to-stereo app that can use IW3, Apple SHARP, or Apple Photos Reframe. Its interface offers Parallel, Crossview, and three anaglyph formats, with multiple outputs selected for one conversion.
+A macOS photo-to-stereo app with Apple SHARP Gaussian splats, IW3 depth-based conversion, and automation of Apple Photos Reframe. Choose multiple output formats from a single conversion: parallel, crossview, and anaglyph variants including Dubois. Final images are saved beside the source photograph and presented through Finder Quick Look.
 
-This repository is a **source snapshot**, assembled from the current Mac source on September 29, 2026. It is not a self-contained installer or a verified build recipe. The app currently uses separate local IW3 and SHARP installations, Python environments, model weights, and a dedicated Photos working library. The GUI source is marked “Multi output R14”; the Reframe finish helper contains the later R15 image-dimension fix. Do not assume every feature has been fully regression tested.
+## Current source snapshot: 2026.10.04
+
+This snapshot was collected from the installed app on October 4, 2026. The installed app still reports bundle version **0.2.2**; that number predates several updates. The dated snapshot identifies this source accurately without claiming a newly tested binary release.
+
+Recent changes include the SHARP distant-sky clipping fix, optional SHARP depth-edge softening (off by default), IW3 strengths 1–6, photo-specific advanced settings with explanations and actual default values, and IW3 window protection using all four image borders. See [CHANGELOG](CHANGELOG.md).
+
+**This download is developer source, not an out-of-the-box installer.** AI checkpoints, Python runtimes and third-party engine code are not bundled. The first-time installation and distribution work is described in [Setup](Docs/SETUP.md) and [Release checklist](Docs/RELEASE_CHECKLIST.md).
+
+## Requirements and boundaries
+
+- The current SHARP integration targets Apple Silicon Macs using PyTorch MPS and the Metal Gaussian renderer. Intel, Windows and Linux are not supported by this integration.
+- Xcode Command Line Tools are needed to compile the Swift GUI and helpers and to build the renderer's native extension.
+- Reframe requires a compatible Apple Photos installation with the Reframe feature, Accessibility/automation approval, and a separate working Photos library. The bundle's macOS minimum of 13.0 is not a claim that Reframe exists on macOS 13.
+- Inject Z's IW3 interface handles photos. Video conversion remains a separate feature of upstream IW3.
 
 ## Source layout
 
-- `App/InjectZ.swift` — AppKit interface, engine selection, conversion orchestration, Photos automation, output handling.
-- `IW3/create_layered_psd.py` — editable depth PSD helper.
-- `SHARP/` — InjectZ integration and rendering wrappers; Apple's SHARP repository and weights are separate.
-- `Reframe/` — Photos import/export automation, library guard, stereo assembly, window correction, and format generation.
-- `Assets/InjectZ.iconset/` — app icon artwork from the available asset archive.
-- `Docs/` — architecture, third-party components, and development status.
+| Folder | Contents |
+|---|---|
+| App | Swift AppKit GUI |
+| SHARP | SHARP prediction wrapper, stereo renderer, optional edge softening |
+| IW3 | Photo wrapper, settings/help definitions, PSD writer |
+| Reframe | Photos scripts, library guard, stereo assembly and format conversion |
+| Assets | Application icon and header artwork |
+| Setup | Captured dependency versions and app metadata |
+| Docs | Setup, architecture, development history and third-party information |
 
-The source was compared byte for byte with the earlier exchange snapshot for overlapping files. It does not include personal photos, generated images, Photos libraries, installed runtimes, model weights, app bundles, signing materials, or backups.
+## Licensing
 
-## Development status
+Inject Z's original source does not yet have a selected public license. Availability on GitHub does not itself grant an open-source license. Contact the repository owner for permission to reuse it until a license is selected.
 
-See [architecture](Docs/ARCHITECTURE.md) and [development log](Docs/DEVELOPMENT_LOG.md). Building and installing on a fresh Mac still needs a documented environment, dependency versions, Info.plist/resource packaging, and the user's own signing identity. The Mac installation uses `~/InjectZ` paths; do not run a compiled copy against an unrelated Photos library.
-
-No license for the original InjectZ source has been selected. See [third-party notes](Docs/THIRD_PARTY.md) for separately maintained components.
+Third-party engines and AI models have their own licenses. In particular, Apple's SHARP model is research-restricted; it is not a model with unrestricted commercial permission. See [Third-party components](Docs/THIRD_PARTY.md).

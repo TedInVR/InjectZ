@@ -110,7 +110,12 @@ p.add_argument("--output-dir", required=True, type=Path)
 p.add_argument("--keep-eyes", action="store_true")
 p.add_argument("--allow-window-violations", action="store_true")
 p.add_argument("--margin-px", type=float, default=2.0)
+p.add_argument("--soften-depth-edges", action="store_true")
+p.add_argument("--edge-soften-radius", type=float, default=2.0)
+p.add_argument("--edge-soften-strength", type=float, default=0.35)
 a = p.parse_args()
+if not 0.5 <= a.edge_soften_radius <= 6 or not 0 <= a.edge_soften_strength <= 1:
+    p.error("Edge radius must be 0.5–6 pixels and strength must be 0–1.")
 
 PHOTO = a.photo.expanduser().resolve()
 PLY = a.ply.expanduser().resolve()
@@ -136,6 +141,28 @@ else:
 device = torch.device("mps")
 sp = load_ply(PLY, device=device)
 means_cpu = sp.means.detach().cpu()
+
+# SHARP may place sky beyond Metal's default far=100. The distant geometry
+# already exists in the PLY; do not discard it or change the reconstruction.
+positive_z = means_cpu[:, 2]
+positive_z = positive_z[torch.isfinite(positive_z) & (positive_z > 0)]
+if positive_z.numel() == 0:
+    raise RuntimeError("SHARP model has no finite positive depths.")
+injectz_far_clip = max(100.0, float(positive_z.max()) * 1.1 + 1.0)
+if not np.isfinite(injectz_far_clip) or injectz_far_clip > 1e25:
+    raise RuntimeError("SHARP model has extreme depth values; refusing unsafe distance limit.")
+
+def render_frames_with_scene_distance(sp, views, K, W, H, background, backend):
+    from metal_gauss.api import render as render_splats
+    for vm in views:
+        rgb, _, _ = render_splats(
+            sp.means, sp.quats, sp.scales, sp.opacities, sp.sh,
+            K, vm, W, H, sh_degree=sp.sh_degree, backend=backend,
+            background=background, far=injectz_far_clip,
+        )
+        yield rgb.detach().clamp(0.0, 1.0)
+print(f"SHARP scene-aware far clipping distance: {injectz_far_clip:.4f}", flush=True)
+
 
 frame_mode, fov, eye, target = frame_cloud(
     means_cpu,
@@ -171,11 +198,11 @@ right_center = torch.tensor([BASELINE / 2.0, 0.0, 0.0], dtype=torch.float32)
 left_view = world_to_camera(R, left_center)
 right_view = world_to_camera(R, right_center)
 
-left = list(render_frames(
+left = list(render_frames_with_scene_distance(
     sp, [left_view], K_left, W, H,
     background=(1.0,1.0,1.0), backend="metal"
 ))[0]
-right = list(render_frames(
+right = list(render_frames_with_scene_distance(
     sp, [right_view], K_right, W, H,
     background=(1.0,1.0,1.0), backend="metal"
 ))[0]
@@ -189,6 +216,18 @@ write_png(right, right_path, W, H)
 
 left_img = Image.open(left_path).convert("RGB")
 right_img = Image.open(right_path).convert("RGB")
+if a.soften_depth_edges and a.edge_soften_strength > 0:
+    from EdgeSoftener import projected_mask, soften
+    print("Softening SHARP depth boundaries independently in each eye…", flush=True)
+    left_mask = projected_mask(sp, left_view, K_left, W, H, BASELINE, injectz_far_clip, a.edge_soften_radius)
+    right_mask = projected_mask(sp, right_view, K_right, W, H, BASELINE, injectz_far_clip, a.edge_soften_radius)
+    left_soft = soften(left_img, left_mask, a.edge_soften_radius, a.edge_soften_strength)
+    right_soft = soften(right_img, right_mask, a.edge_soften_radius, a.edge_soften_strength)
+    left_img.close(); right_img.close()
+    left_img, right_img = left_soft, right_soft
+    left_img.save(left_path); right_img.save(right_path)
+    print(f"Edge radius {a.edge_soften_radius:.2f}px; strength {a.edge_soften_strength:.0%}; "
+          f"affected masks L {np.mean(left_mask > 0):.2%}, R {np.mean(right_mask > 0):.2%}", flush=True)
 
 label = "Parallel" if a.format == "parallel" else "Crossview"
 sbs_path = OUTDIR / f"{PHOTO.stem}_{label}_InjectZ_SHARP_Baseline{token}.png"

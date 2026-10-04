@@ -1,0 +1,11 @@
+{
+  "CFBundleIdentifier": "com.injectz.app.dev",
+  "CFBundleExecutable": "InjectZ",
+  "CFBundleName": "InjectZ",
+  "CFBundleDisplayName": "Inject Z",
+  "CFBundleIconFile": "InjectZ",
+  "CFBundleShortVersionString": "0.2.2",
+  "CFBundleVersion": "0.2.2",
+  "LSMinimumSystemVersion": "13.0",
+  "NSHighResolutionCapable": true
+}

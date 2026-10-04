@@ -30,6 +30,9 @@ def main():
                    help="Optional per-eye width override. Default preserves source dimensions.")
     p.add_argument("--output-dir",type=Path,default=None)
     p.add_argument("--rebuild",action="store_true")
+    p.add_argument("--soften-depth-edges",action="store_true")
+    p.add_argument("--edge-soften-radius",type=float,default=2.0)
+    p.add_argument("--edge-soften-strength",type=float,default=0.35)
     a=p.parse_args()
 
     photo=a.photo.expanduser().resolve()
@@ -80,6 +83,9 @@ def main():
         cmd.extend(["--eye-width",str(a.eye_width)])
     if a.keep_eyes: cmd.append("--keep-eyes")
     if a.allow_window_violations: cmd.append("--allow-window-violations")
+    if a.soften_depth_edges:
+        cmd += ["--soften-depth-edges", "--edge-soften-radius", str(a.edge_soften_radius),
+                "--edge-soften-strength", str(a.edge_soften_strength)]
     run(cmd,env)
     print("\nInjectZ conversion complete.")
 

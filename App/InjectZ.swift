@@ -60,8 +60,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var resumeReframeButton: NSButton!
     var selectedPhoto: URL?
     var lastOutput: URL?
+    var sharpEdgesButton: NSButton!
+    var sharpEdgesPanel: NSPanel?
+    var softenSharpEdges: NSButton?
+    var edgeRadius: NSSlider?
+    var edgeStrength: NSSlider?
+    var edgeRadiusLabel: NSTextField?
+    var edgeStrengthLabel: NSTextField?
+    @objc func edgeValuesChanged() {
+        edgeRadiusLabel?.stringValue = String(format: "Radius: %.1f pixels", edgeRadius?.doubleValue ?? 2)
+        edgeStrengthLabel?.stringValue = String(format: "Strength: %.0f%%", (edgeStrength?.doubleValue ?? 0.35) * 100)
+        let enabled = softenSharpEdges?.state == .on
+        edgeRadius?.isEnabled = enabled
+        edgeStrength?.isEnabled = enabled
+    }
+    @objc func showSharpEdges() {
+        if let panel = sharpEdgesPanel { panel.makeKeyAndOrderFront(nil); return }
+        let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 500, height: 300),
+                            styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        panel.title = "SHARP Edge Softening"
+        panel.center()
+        guard let content = panel.contentView else { return }
+        let toggle = NSButton(checkboxWithTitle: "Soften depth edges", target: self, action: #selector(edgeValuesChanged))
+        toggle.frame = NSRect(x: 20, y: 249, width: 300, height: 26)
+        toggle.state = .off
+        content.addSubview(toggle); softenSharpEdges = toggle
+        let radiusLabel = NSTextField(labelWithString: "Radius: 2.0 pixels")
+        radiusLabel.frame = NSRect(x: 20, y: 210, width: 200, height: 24)
+        content.addSubview(radiusLabel); edgeRadiusLabel = radiusLabel
+        let radius = NSSlider(value: 2, minValue: 0.5, maxValue: 6, target: self, action: #selector(edgeValuesChanged))
+        radius.frame = NSRect(x: 220, y: 207, width: 245, height: 26)
+        content.addSubview(radius); edgeRadius = radius
+        let strengthLabel = NSTextField(labelWithString: "Strength: 35%")
+        strengthLabel.frame = NSRect(x: 20, y: 165, width: 200, height: 24)
+        content.addSubview(strengthLabel); edgeStrengthLabel = strengthLabel
+        let strength = NSSlider(value: 0.35, minValue: 0, maxValue: 1, target: self, action: #selector(edgeValuesChanged))
+        strength.frame = NSRect(x: 220, y: 162, width: 245, height: 26)
+        content.addSubview(strength); edgeStrength = strength
+        let hint = NSTextField(wrappingLabelWithString: "Softens only a narrow band at significant depth boundaries. Larger radius widens the band; strength controls the blend. Image detail outside that band is preserved. Fine hair or incorrectly estimated depth may still be affected. Adds two geometry passes when enabled. Start with 2 pixels and 35%.")
+        hint.frame = NSRect(x: 20, y: 25, width: 460, height: 100)
+        hint.textColor = .secondaryLabelColor
+        content.addSubview(hint)
+        sharpEdgesPanel = panel
+        edgeValuesChanged()
+        panel.makeKeyAndOrderFront(nil)
+    }
+
     var sharpDepthSelection = 3
-    var iw3StrengthSelection = 1
+    var iw3StrengthSelection = 4
     var reframeAppliedPan: Double = 0
     var reframeRequestedPan: Double = 0
 
@@ -108,7 +154,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window = NSWindow(contentRect: frame,
                           styleMask: [.titled, .closable, .miniaturizable],
                           backing: .buffered, defer: false)
-        window.title = "InjectZ — Multi output R14"
+        window.title = "Inject Z"
         window.center()
 
         let c = DropView(frame: frame)
@@ -121,7 +167,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             c.addSubview(f)
         }
 
-        let title = NSTextField(labelWithString: "InjectZ")
+        let title = NSTextField(labelWithString: "Inject Z")
         title.font = .systemFont(ofSize: 28, weight: .semibold)
         title.frame = NSRect(x: 30, y: 405, width: 200, height: 40)
         c.addSubview(title)
@@ -187,9 +233,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         advancedButton.frame = NSRect(x: 380, y: 147, width: 205, height: 30)
         advancedButton.isHidden = true
         c.addSubview(advancedButton)
+        sharpEdgesButton = NSButton(title: "SHARP Edge Softening…", target: self, action: #selector(showSharpEdges))
+        sharpEdgesButton.frame = NSRect(x: 380, y: 147, width: 205, height: 30)
+        c.addSubview(sharpEdgesButton)
 
         keepEyes = NSButton(checkboxWithTitle: "Save separate left/right images", target: nil, action: nil)
-        keepEyes.frame = NSRect(x: 145, y: 151, width: 260, height: 24)
+        keepEyes.frame = NSRect(x: 145, y: 151, width: 225, height: 24)
         c.addSubview(keepEyes)
 
         allowWindowViolations = NSButton(checkboxWithTitle: "Allow window violations", target: nil, action: nil)
@@ -234,7 +283,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             sharpDepthSelection = depthPopup.indexOfSelectedItem
             depthLabel.stringValue = "3D Strength"
             depthPopup.removeAllItems()
-            depthPopup.addItems(withTitles: ["4.0", "5.0", "6.0"])
+            depthPopup.addItems(withTitles: ["1.0", "2.0", "3.0", "4.0", "5.0", "6.0"])
             depthPopup.selectItem(at: iw3StrengthSelection)
         } else {
             if depthLabel.stringValue == "3D Strength" {
@@ -248,6 +297,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         iw3ModelLabel.isHidden = !iw3
         iw3ModelPopup.isHidden = !iw3
         advancedButton.isHidden = !iw3
+        sharpEdgesButton.isHidden = enginePopup.indexOfSelectedItem != 0
         depthMapButton.isEnabled = iw3
         keepEyes.isEnabled = !iw3
         keepEyes.isHidden = iw3 || enginePopup.indexOfSelectedItem == 2
@@ -260,9 +310,104 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    var iw3SettingHelp: [String: String] = [:]
+    func loadIW3SettingHelp() {
+        let url = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("InjectZ/IW3SettingHelp.json")
+        if let data = try? Data(contentsOf: url),
+           let help = (try? JSONSerialization.jsonObject(with: data)) as? [String: String] {
+            iw3SettingHelp = help
+        }
+    }
+    func addIW3HelpButton(_ parent: NSView, _ flag: String, _ x: CGFloat, _ y: CGFloat) {
+        let button = NSButton(title: "What is this?", target: self, action: #selector(showIW3SettingHelp(_:)))
+        button.frame = NSRect(x: x, y: y, width: 120, height: 28)
+        button.bezelStyle = .rounded
+        button.identifier = NSUserInterfaceItemIdentifier(flag)
+        parent.addSubview(button)
+    }
+    @objc func showIW3SettingHelp(_ sender: NSButton) {
+        guard let flag = sender.identifier?.rawValue else { return }
+        let alert = NSAlert()
+        alert.messageText = flag.replacingOccurrences(of: "--", with: "").replacingOccurrences(of: "-", with: " ").capitalized
+        alert.informativeText = iw3SettingHelp[flag] ?? "This setting’s explanation is unavailable. Reinstall the setting-help update."
+        alert.addButton(withTitle: "OK")
+        if let panel = advancedPanel {
+            alert.beginSheetModal(for: panel, completionHandler: { _ in })
+        } else {
+            alert.runModal()
+        }
+    }
+
+    var extraIW3Controls: [(String, NSControl, Bool)] = []
+    func buildExtraIW3Settings(_ content: NSView) {
+        let path = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("InjectZ/IW3Settings.json")
+        guard let data = try? Data(contentsOf: path),
+              let rows = (try? JSONSerialization.jsonObject(with: data)) as? [[String: Any]] else { return }
+        let scroll = NSScrollView(frame: NSRect(x: 15, y: 15, width: 680, height: 390))
+        scroll.hasVerticalScroller = true
+        let doc = NSView(frame: NSRect(x: 0, y: 0, width: 650, height: CGFloat(rows.count * 76)))
+        scroll.documentView = doc
+        content.addSubview(scroll)
+        for (i, row) in rows.enumerated() {
+            guard let flag = row["flag"] as? String else { continue }
+            let y = doc.frame.height - CGFloat((i + 1) * 76)
+            let label = NSTextField(labelWithString: flag.replacingOccurrences(of: "--", with: "").replacingOccurrences(of: "-", with: " ").capitalized)
+            label.frame = NSRect(x: 8, y: y + 44, width: 275, height: 22)
+            doc.addSubview(label)
+            let action = row["action"] as? String ?? ""
+            let defaultLabel = row["defaultLabel"] as? String ?? "Not set"
+            let choices = row["choices"] as? [Any] ?? []
+            let control: NSControl
+            if !action.isEmpty {
+                let popup = NSPopUpButton(frame: NSRect(x: 285, y: y + 40, width: 225, height: 28))
+                popup.addItems(withTitles: [defaultLabel, action == "store_false" ? "Off" : "On"])
+                popup.item(at: 1)?.tag = 1
+                control = popup
+            } else if !choices.isEmpty {
+                let popup = NSPopUpButton(frame: NSRect(x: 285, y: y + 40, width: 225, height: 28))
+                popup.addItems(withTitles: [defaultLabel] + choices.map { String(describing: $0) }.filter { $0 != defaultLabel })
+                control = popup
+            } else {
+                let field = NSTextField(frame: NSRect(x: 285, y: y + 40, width: 225, height: 26))
+                field.placeholderString = defaultLabel
+                control = field
+            }
+            control.toolTip = row["help"] as? String
+            doc.addSubview(control)
+            addIW3HelpButton(doc, flag, 520, y + 40)
+            extraIW3Controls.append((flag, control, row["multiple"] as? Bool ?? false))
+            let hint = NSTextField(wrappingLabelWithString: row["help"] as? String ?? "")
+            hint.frame = NSRect(x: 8, y: y + 3, width: 620, height: 36)
+            hint.font = NSFont.systemFont(ofSize: 11)
+            hint.textColor = .secondaryLabelColor
+            hint.maximumNumberOfLines = 2
+            doc.addSubview(hint)
+        }
+        doc.scroll(NSPoint(x: 0, y: doc.frame.height))
+    }
+    func extraIW3Arguments() -> [String] {
+        var args: [String] = []
+        for (flag, control, multiple) in extraIW3Controls {
+            if let popup = control as? NSPopUpButton {
+                if popup.indexOfSelectedItem > 0 {
+                    args.append(flag)
+                    let value = popup.titleOfSelectedItem ?? ""
+                    if popup.selectedItem?.tag != 1 { args.append(value) }
+                }
+            } else if let field = control as? NSTextField {
+                let value = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !value.isEmpty {
+                    args.append(flag)
+                    args += multiple ? value.split(whereSeparator: { $0.isWhitespace }).map(String.init) : [value]
+                }
+            }
+        }
+        return args
+    }
+
     @objc func showAdvanced() {
         if let panel = advancedPanel { panel.makeKeyAndOrderFront(nil); return }
-        let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 490, height: 330),
+        let panel = NSPanel(contentRect: NSRect(x: 0, y: 410, width: 710, height: 740),
                             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         panel.title = "Advanced IW3 Settings"
         panel.center()
@@ -272,30 +417,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             view.frame = NSRect(x: 20, y: y, width: 175, height: 24)
             content.addSubview(view)
         }
-        label("Stereo generation method", 267)
-        methodPopup = NSPopUpButton(frame: NSRect(x: 200, y: 263, width: 265, height: 28))
+        label("Stereo generation method", 677)
+        methodPopup = NSPopUpButton(frame: NSRect(x: 200, y: 673, width: 265, height: 28))
         methodPopup.addItems(withTitles: ["mlbw_l2_inpaint", "row_flow", "row_flow_v3", "grid_sample", "backward", "forward", "forward_fill", "forward_inpaint", "mlbw_l2", "mlbw_l4", "mlbw_l2s", "mlbw_l4s", "mask_mlbw_l2", "row_flow_sym", "row_flow_v3_sym", "row_flow_v2"])
         content.addSubview(methodPopup)
-        label("Convergence (0–1)", 220)
-        convergenceField = NSTextField(frame: NSRect(x: 200, y: 217, width: 100, height: 26))
+        label("Convergence (0–1)", 630)
+        convergenceField = NSTextField(frame: NSRect(x: 200, y: 627, width: 100, height: 26))
         convergenceField.stringValue = "0.25"
         content.addSubview(convergenceField)
-        label("Foreground scale (-3–3)", 175)
-        foregroundField = NSTextField(frame: NSRect(x: 200, y: 172, width: 100, height: 26))
+        label("Foreground scale (-3–3)", 585)
+        foregroundField = NSTextField(frame: NSRect(x: 200, y: 582, width: 100, height: 26))
         foregroundField.stringValue = "0"
         content.addSubview(foregroundField)
         preserveBorder = NSButton(checkboxWithTitle: "Use IW3 border preservation (experimental)", target: nil, action: nil)
-        preserveBorder.frame = NSRect(x: 20, y: 125, width: 400, height: 25)
+        preserveBorder.frame = NSRect(x: 20, y: 535, width: 400, height: 25)
         preserveBorder.state = .on
         content.addSubview(preserveBorder)
         depthAA = NSButton(checkboxWithTitle: "Depth anti-aliasing (supported models only)", target: nil, action: nil)
-        depthAA.frame = NSRect(x: 20, y: 93, width: 400, height: 25)
+        depthAA.frame = NSRect(x: 20, y: 503, width: 400, height: 25)
         content.addSubview(depthAA)
-        let hint = NSTextField(labelWithString: "IW3 border preservation does NOT guarantee four-edge window protection. Other settings apply to stereo conversion.")
-        hint.frame = NSRect(x: 20, y: 25, width: 450, height: 44)
+        let hint = NSTextField(labelWithString: "Four-edge depth protection is active unless Allow window violations is checked.")
+        hint.frame = NSRect(x: 20, y: 435, width: 450, height: 44)
         hint.maximumNumberOfLines = 2
         hint.textColor = .secondaryLabelColor
         content.addSubview(hint)
+        loadIW3SettingHelp()
+        addIW3HelpButton(content, "--method", 485, 673)
+        addIW3HelpButton(content, "--convergence", 485, 627)
+        addIW3HelpButton(content, "--foreground-scale", 485, 582)
+        addIW3HelpButton(content, "--preserve-screen-border", 485, 533)
+        addIW3HelpButton(content, "--depth-aa", 485, 501)
+        buildExtraIW3Settings(content)
         advancedPanel = panel
         panel.makeKeyAndOrderFront(nil)
     }
@@ -383,7 +535,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 statusLabel.stringValue = "Advanced convergence or foreground scale is out of range."
                 return
             }
-            var args = ["-m", "iw3", "-i", photo.path, "-o", runDir.path,
+            var args = [root.appendingPathComponent("Development/IW3/photo_iw3.py").path, "-i", photo.path, "-o", runDir.path,
                         "--method", methodPopup?.titleOfSelectedItem ?? "mlbw_l2_inpaint", "--divergence", depth,
                         "--convergence", String(convergence), "--depth-model",
                         self.iw3ModelPopup.titleOfSelectedItem ?? "DepthPro"]
@@ -391,7 +543,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if allowWindowViolations.state == .off && preserveBorder?.state != .off { args.append("--preserve-screen-border") }
             if depthAA?.state == .on { args.append("--depth-aa") }
             if depthMapOnly { args += ["--export", "--export-depth-fit"] }
-            args += ["--inpaint-model", "light_inpaint_v1", "--video-codec", "libx264", "--yes"]
+            else if allowWindowViolations.state == .off { args.append("--injectz-protect-window") }
+            args += ["--yes"]
+            let extra = extraIW3Arguments()
+            if !extra.contains("--inpaint-model") { args += ["--inpaint-model", "light_inpaint_v1"] }
+            if !extra.contains("--video-codec") { args += ["--video-codec", "libx264"] }
+            args += extra
             task.arguments = args
             env["HF_HOME"] = cache.appendingPathComponent("huggingface").path
             env["TORCH_HOME"] = cache.appendingPathComponent("torch").path
@@ -406,6 +563,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             var args = [root.appendingPathComponent("injectz_engine.py").path,
                         photo.path, "--depth", sharpDepth, "--format", format, "--output-dir", outputDir.path]
             if keepEyes.state == .on { args.append("--keep-eyes") }
+            if softenSharpEdges?.state == .on {
+                args += ["--soften-depth-edges", "--edge-soften-radius", String(edgeRadius?.doubleValue ?? 2),
+                         "--edge-soften-strength", String(edgeStrength?.doubleValue ?? 0.35)]
+            }
             if allowWindowViolations.state == .on { args.append("--allow-window-violations") }
             task.arguments = args
         }

@@ -1,19 +1,24 @@
 # Architecture and current boundaries
 
-The AppKit GUI in `App/InjectZ.swift` selects an engine and one or more output formats. The current Mac installation expects files below `~/InjectZ/Development/` and emits final photos next to the original image. The source here reflects the current Mac collector ZIP from September 29, 2026.
+The AppKit GUI in `App/InjectZ.swift` selects an engine and one or more output formats. Final deliverables go next to the input photo. The installed layout is rooted at `~/InjectZ`.
 
 ## Engines
 
-- **IW3:** The GUI launches a separate nunif/IW3 Python runtime, finds its generated stereo image and depth data, and can call `IW3/create_layered_psd.py`. Requested display formats are handled by `Reframe/SharedStereoFormats.py`. The nunif source, models, and environment are external.
-- **SHARP:** `SHARP/injectz_engine.py` invokes an external Apple SHARP installation and checkpoint, while `SHARP/injectz_sharp_render.py` renders left/right views from the splat representation. The GUI then emits selected formats. Apple's SHARP source and model are external.
-- **Apple Reframe:** The GUI checks Photos Accessibility access and runs `Reframe/LibraryGuard.swift`'s compiled guard before import. AppleScript imports working copies and exports the edited eye. `Reframe/FinishSingleRight.py` normalizes modest size differences, applies `WindowGuard.py`, and calls stereo assembly and shared output formatting. Completed-album removal is best effort; imported media storage is not confirmed purged.
+SHARP uses `Runtime/python/bin/python3`, Apple SHARP and `Models/SHARP/sharp_2572gikvuh.pt`. Prediction produces a cached PLY; `injectz_sharp_render.py` renders stereo through metal-gauss. `EdgeSoftener.py` optionally renders a per-eye inverse-depth guide and softens a narrow band around sufficiently large disparity discontinuities. Texture edges in flat-depth regions do not trigger the mask. This is not semantic face/text protection; noisy geometry can produce unwanted boundaries.
 
-`Assets/InjectZ.iconset/` contains the available artwork, but this snapshot does not include an authoritative Info.plist, built `.icns`, or installer. Those belong in a future reproducible build process. The current signing identity and macOS Accessibility permission must not be copied to GitHub.
+The sky repair uses `max(100, maxPositiveFiniteZ * 1.1 + 1)` for the render far plane. This matches the current identity-rotation cameras with horizontal translation. Future rotated cameras require camera-space depth bounds. Testing on a failing sky image found identical cached/fresh PLYs and repeat renders; geometry beyond 100 was clipped. Increasing the far plane restored the sky without replacing SHARP or the renderer.
 
-## Known issues and verification gaps
+IW3 uses `Development/IW3/python/bin/python` and a nunif checkout at `Development/IW3/nunif`. `photo_iw3.py` patches a guarded upstream divergence hook to adjust convergence based on the mapped depth at all four borders. It relies on a particular upstream source structure and must be checked when nunif changes. The GUI sets `HF_HUB_OFFLINE=1`: model assets must be downloaded before normal conversions. Help/default files are `IW3Settings.json` and `IW3SettingHelp.json` at the installation root.
 
-- SHARP produces blotchy skies on some images. No verified correction exists.
-- Photos Reframe can reject particular images with a processing alert or restrict the available pan. This snapshot does not diagnose a daily quota.
-- The R14 multi-format UI and R15 Reframe dimension handling need broader end-to-end testing; one failed Reframe export was recovered with the R15 helper.
-- IW3 stereo-window protection and the placement of all optional outputs need checking against real conversions.
-- The app relies on installed runtimes, fixed paths, and Photos UI behavior. This is source for collaboration, not a claim of portability.
+Reframe uses the separately compiled `Development/Reframe/LibraryGuard`. The guard verifies that Photos has open files within the exact working library before importing. A dedicated library must be created at `Development/InjectZ Working Library.photoslibrary`. The main automation is in the Swift GUI; additional scripts/controllers are retained for development and recovery. Exported eye dimensions are normalized by `FinishSingleRight.py`, then window protection and stereo formatting are applied. Completed-album deletion is best effort and is not proof of permanent deletion of every imported media file.
+
+Shared formatting is implemented in `Development/Reframe/SharedStereoFormats.py`, executed using the IW3 Python environment, including for SHARP outputs. Reframe therefore also needs the image-processing environment, even when IW3 conversion is not used.
+
+## Known issues / validation gaps
+
+- SHARP's PLY cache is keyed by source basename, so same-named photos or modified input content can reuse stale reconstruction. CLI `--rebuild` forces reconstruction. This is separate from the confirmed far-plane sky bug.
+- The engine removes a Metal extension lock without checking its owner; do not run multiple SHARP conversions concurrently until this is hardened.
+- Reframe pan limits and processing failures vary by image/service state; a daily quota has not been independently established.
+- Edge softening can create halos at excessive settings; two extra guide renders add overhead when enabled.
+- Window protection depends on estimated geometry/depth, which can be wrong. It is not a semantic guarantee for all images.
+- A clean-machine installation, supported OS matrix, stable dependency revision lock and public signing/notarization are still outstanding.
