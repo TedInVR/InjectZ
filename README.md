@@ -17,7 +17,7 @@ Inject Z currently converts **photos, not videos**.
 ## Computer requirements
 
 - **Mac with Apple Silicon:** M1, M2, M3, M4, or newer. The current SHARP integration requires Apple Silicon; Intel Macs are not supported by this package.
-- **macOS:** The app declares macOS 13 or later, but the minimum version that supports the complete installation has not yet been verified.
+- **macOS:** The app declares macOS 27 or later, but the minimum version that supports the complete installation has not yet been verified.
 - **Apple Reframe:** Requires a version of Apple Photos that includes Reframe. This feature is not available on every Mac or macOS version.
 - **Storage and internet:** Several gigabytes of space and an internet connection for the initial download of dependencies and AI models.
 - **Developer tools:** Xcode Command Line Tools are currently required to build the app and renderer.
