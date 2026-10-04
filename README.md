@@ -57,6 +57,18 @@ If macOS blocks the downloaded command, use the normal macOS approval process fo
 
 Dependencies and model weights are downloaded during setup; they are **not bundled in this repository**. Setup assistance is provided by START_HERE.command, not by an automatic repair wizard inside the conversion app.
 
+## My basic use recommendations
+
+IW3 uses depth maps, which is one of the more traditional methods used for conversion, where a depth map (grayscale version of the photo where the depth is approximated and represented with shades of white/gray/black, from foreground to background) is first generated internally, then a renderer uses that as a guide and shifts all the pixels of the image to varying degrees, to create an alternate view.  Depth map conversions can be great, but I haven't perfected them yet myself, and find the other two conversions methods far superior, so I don't use IW3 very much.
+
+Apple SHARP uses gaussian splats, which means it estimates the depth environment and builds it into an actual 3D model with about 1.5 million little semi-translucent, colored dots floating in space.  With that model built, it can then move a virtual camera horizontally to take another picture of it from that new perspective, and generate your 3D view.  Apple SHARP, to me, seems to provide the best results, and is my first choice.  
+
+Apple "Reframe" is a tool in the latest version of the Photos app, and it does something very similar, creating a virtual 3D model and letting you reframe the picture from a different perspective.  I'm not sure the technical difference between what it does, and what SHARP does, but they certainly both provide excellent results, and they clearly interpret the depth environment differently, and yield different results from each other.  So if I get a result with SHARP that I'm unhappy with, I try Reframe.  
+
+Unfortunately Apple seems to have a harsh limit on how many times you can use Reframe in a day (it varies user to user, but for me it seems to be about 8 images within a 24 hour period).  There is no limit to how many times you can use SHARP and IW3.
+
+As far as the depth strength setting, I always try the strongest depth setting first, and only lower it if it's too extreme.  The app also prevents window violations (on all 4 sides) by default, but you can disable that if you like.  And there's an option to add Edge Softening (blur) to a few pixels along the edge of foreground objects.  I don't use this if the photo is nice and high-res and crisp.  But if I'm converting a low-res photo, since the edges around things are already very soft and blurred, I use this feature to prevent the converted image from have too sharp an edge, because that ends up looking unnatural, and can cause a sleight cardboard cut-out effect.  So using the Edge Blur helps counter that.
+
 ## Acknowledgments
 
 Inject Z would not have been possible without the work of the developers and researchers behind its conversion engines, AI models, and supporting software.
