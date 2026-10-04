@@ -57,6 +57,30 @@ If macOS blocks the downloaded command, use the normal macOS approval process fo
 
 Dependencies and model weights are downloaded during setup; they are **not bundled in this repository**. Setup assistance is provided by START_HERE.command, not by an automatic repair wizard inside the conversion app.
 
+## Acknowledgments
+
+Inject Z would not have been possible without the work of the developers and researchers behind its conversion engines, AI models, and supporting software.
+
+### Conversion engines and supporting technology
+
+- **Apple’s machine-learning research teams**, for [SHARP](https://github.com/apple-aiml-research/ml-sharp) and [Depth Pro](https://github.com/apple-aiml-research/ml-depth-pro), and the **Apple Photos team** for Reframe.
+- **nagadomi and the nunif/IW3 contributors**, for [IW3](https://github.com/nagadomi/nunif), its stereo-conversion methods, and its integration of multiple depth models.
+- **Nando Metzger**, for [metal-gauss](https://github.com/nandometzger/metal-gauss), the Metal renderer used by Inject Z’s SHARP pipeline on Apple Silicon.
+- The researchers and contributors behind **Depth Anything, Depth Anything V2, ZoeDepth, Distill Any Depth**, and the other models available through IW3.
+- The developers and maintainers of **Python, PyTorch, NumPy, SciPy, Pillow, OpenCV, PyAV/FFmpeg**, and the other libraries that support these tools.
+
+### Advice, generosity, and inspiration
+
+- **Tony Lin**, for sharing his experience with stereo conversion, comparing results, and contributing suggestions about depth estimation and Gaussian splats.
+- **Okano Izumi**, creator of **Splat Stereo**, for generously sharing his source code, granting permission to learn from and use his work, and pointing us toward helpful technical references.
+- **Masuji Suto**, creator of **StereoPhoto Maker** and **MLSharp**, for his longstanding contributions to stereoscopic photography and the tools that have helped so many people create and improve stereo images.
+- The members of **Let’s Convert 2D Images to 3D** and the wider stereo-photography community, for their examples, feedback, practical experience, and encouragement.
+- **OpenAI and ChatGPT**, for the coding assistance used to develop and revise Inject Z.
+
+These acknowledgments recognize both software used by Inject Z and people whose advice or work helped guide its development. They do not imply that every named project’s code is incorporated into Inject Z, or that its developers endorse this app.
+
+Third-party software and AI models retain their own licenses and attribution requirements. See [Third-party components](Docs/THIRD_PARTY.md) for further information.
+
 ### Prepare IW3 models
 
 After setup, open **~/InjectZ/MODEL_SETUP.txt** and double-click **~/InjectZ/DOWNLOAD_IW3_MODELS.command**. This opens upstream IW3 with internet access and the same model cache locations used by Inject Z.
