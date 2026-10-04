@@ -6,6 +6,8 @@ Final images are saved beside the source photograph and displayed using Finder Q
 
 Inject Z was vibe-coded with ChatGPT. In plain English, I described what I wanted the app to do, and ChatGPT helped write and revise the code. Development and testing are ongoing.
 
+**New to Inject Z?** Read the [User Guide](USER_GUIDE.md) for step-by-step instructions.
+
 ## Conversion engines
 
 - **Apple SHARP:** Gaussian splat reconstruction with adjustable depth and optional softening around depth edges. Includes a correction for distant-sky clipping in the Metal renderer.
