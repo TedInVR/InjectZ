@@ -2,6 +2,8 @@
 
 A macOS photo-to-stereo app with Apple SHARP Gaussian splats, IW3 depth-based conversion, and automation of Apple Photos Reframe. Choose multiple output formats from a single conversion: parallel, crossview, and anaglyph variants including Dubois. Final images are saved beside the source photograph and presented through Finder Quick Look.
 
+Inject Z was vibe-coded with the use of ChatGPT.  This is a fancy way of saying that someone (myself) who knows nothing about coding, told ChatGPT what he wanted, and ChatGPT did all the technical stuff.
+
 ## What Inject Z does
 
 Inject Z converts ordinary 2D photographs into stereoscopic 3D images letting you choose between three different conversion engines:
@@ -24,7 +26,7 @@ Inject Z currently converts **photos, not videos**.
 
 Developed and tested on an M2 Max MacBook Pro with 64 GB of memory. Minimum memory requirements have not yet been established.
 
-**Installation status:** This repository currently provides source code and setup documentation. A complete one-click installer is still in development.
+**Installation:** The repository currently provides Inject Z’s latest source code and setup documentation. It requires manual installation of the conversion engines and AI models. A guided installer that prepares these automatically is planned.  For those that need guidance, it is suggested that ChatGPT can walk one through any and all steps.
 
 ## Current source snapshot: 2026.10.04
 
