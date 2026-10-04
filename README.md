@@ -28,6 +28,14 @@ Developed and tested on an M2 Max MacBook Pro with 64 GB of memory. Minimum memo
 
 **Installation:** The repository currently provides Inject Z’s latest source code and setup documentation. It requires manual installation of the conversion engines and AI models. A guided installer that prepares these automatically is planned.  For those that need guidance, it is suggested that ChatGPT can walk one through any and all steps.
 
+| Components the user will need to install ...
+|
+| Inject Z application: Install Xcode Command Line Tools and compile the supplied Swift source using the build script. |
+| SHARP: Install its Python environment, Apple SHARP, the Metal renderer, required libraries, and the SHARP model weights. |
+| IW3: Install a separate Python environment, nunif/IW3, and the selected depth and inpainting models. |
+| Photos Reframe: Have Photos with Reframe available, create the dedicated working Photos library, compile the library guard, and grant permissions. |
+| Shared output tools: Install the image-processing Python environment used for stereo assembly and anaglyph output—even when using Reframe. |
+
 ## Current source snapshot: 2026.10.04
 
 This snapshot was collected from the installed app on October 4, 2026. The installed app still reports bundle version **0.2.2**; that number predates several updates. The dated snapshot identifies this source accurately without claiming a newly tested binary release.
