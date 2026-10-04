@@ -2,6 +2,30 @@
 
 A macOS photo-to-stereo app with Apple SHARP Gaussian splats, IW3 depth-based conversion, and automation of Apple Photos Reframe. Choose multiple output formats from a single conversion: parallel, crossview, and anaglyph variants including Dubois. Final images are saved beside the source photograph and presented through Finder Quick Look.
 
+## What Inject Z does
+
+Inject Z converts ordinary 2D photographs into stereoscopic 3D images letting you choose between three different conversion engines:
+
+- **Apple SHARP:** Gaussian splat reconstruction with adjustable depth and optional softening of depth edges.
+- **IW3:** Depth-map-based conversion with a choice of depth models and advanced photo settings.
+- **Apple Photos Reframe:** Automated conversion through the "Reframe" feature in the MacOS Photos app "Tools" section.
+
+Generate Parallel, Crossview, and anaglyph images—including Dubois—with multiple formats selectable in one conversion. Stereo-window protection is enabled by default. Results are saved beside the original photograph and displayed using Finder Quick Look.
+
+Inject Z currently converts **photos, not videos**.
+
+## Computer requirements
+
+- **Mac with Apple Silicon:** M1, M2, M3, M4, or newer. The current SHARP integration requires Apple Silicon; Intel Macs are not supported by this package.
+- **macOS:** The app declares macOS 13 or later, but the minimum version that supports the complete installation has not yet been verified.
+- **Apple Reframe:** Requires a version of Apple Photos that includes Reframe. This feature is not available on every Mac or macOS version.
+- **Storage and internet:** Several gigabytes of space and an internet connection for the initial download of dependencies and AI models.
+- **Developer tools:** Xcode Command Line Tools are currently required to build the app and renderer.
+
+Developed and tested on an M2 Max MacBook Pro with 64 GB of memory. Minimum memory requirements have not yet been established.
+
+**Installation status:** This repository currently provides source code and setup documentation. A complete one-click installer is still in development.
+
 ## Current source snapshot: 2026.10.04
 
 This snapshot was collected from the installed app on October 4, 2026. The installed app still reports bundle version **0.2.2**; that number predates several updates. The dated snapshot identifies this source accurately without claiming a newly tested binary release.
