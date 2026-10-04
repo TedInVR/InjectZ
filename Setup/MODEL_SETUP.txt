@@ -1,0 +1,16 @@
+IW3 model preparation
+
+1. Double-click DOWNLOAD_IW3_MODELS.command. It opens upstream IW3 online using the same caches as Inject Z.
+2. Choose a disposable photo, and choose ~/InjectZ/Development/IW3/ModelSetupOutput as its output directory. Keep the original safe.
+3. Choose the depth model you intend to use in Inject Z. Its current default is DepthPro. Read the upstream model terms before use.
+4. Set the method to mlbw_l2_inpaint and the inpainting model to light_inpaint_v1, matching Inject Z defaults. Use Full SBS output, convergence 0.25 and a modest strength such as 1 for the test. If this version of upstream IW3 lacks these choices, stop and report that incompatibility.
+5. Convert the test photo. First use downloads the necessary depth, warp and inpainting weights. Wait for the test to complete successfully.
+6. Quit upstream IW3 and open ~/InjectZ/InjectZ.app. Select the same model and settings and test another photo.
+
+Repeat model preparation for each additional model or method you want to use. Inject Z itself currently runs IW3 with Hugging Face offline mode; it cannot download missing models automatically.
+
+Reframe also needs the IW3 Python image libraries, but does not require downloading IW3 depth models.
+
+SHARP setup installs the selected research checkpoint automatically after acknowledgement and verifies its hash. First SHARP conversion can compile Metal kernels. If the renderer API is incompatible, setup stops; do not assume that the installation is ready.
+
+This developer build uses ad-hoc signing. Permission persistence across updates is not guaranteed. A distribution-signed release is still needed for a polished public installer.
