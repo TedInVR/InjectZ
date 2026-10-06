@@ -1,0 +1,325 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Inject Z User Guide</title><style>body{font:17px system-ui;line-height:1.6;max-width:1000px;margin:40px auto;padding:0 24px}table{border-collapse:collapse}th,td{padding:10px;border:1px solid #aaa;text-align:left}a{color:#0769a5}h2{margin-top:2em}</style><body><h1>Inject Z — User Guide</h1>
+<p>Inject Z turns a normal photograph into a pair of slightly different views, one for each eye. When viewed using the appropriate stereo viewing method, the pair gives an impression of depth.</p>
+<p>This guide explains the current photo-conversion app. If you have not installed it yet, start with the <a href="README.md">README installation instructions</a> and <a href="SETUP_PREVIEW.md">guided setup preview</a>. A download of the source alone is not a ready-to-run installation.</p>
+<h2>Your first conversion</h2>
+<ol>
+<li>Open <strong>InjectZ.app</strong> in the <strong>InjectZ</strong> folder inside your home folder.</li>
+<li>Click <strong>Choose Photo…</strong> and select a photograph. You can also drag a photo into the main app window. The current interface selects one photograph at a time.</li>
+<li>Select an <strong>engine</strong>: <strong>SHARP (Gaussian splats)</strong>, <strong>IW3</strong>, or <strong>Apple Reframe</strong>. Choose an engine whose setup is complete and whose model terms permit your use.</li>
+<li>Choose a <strong>depth</strong> setting. With SHARP or Reframe, <strong>Medium</strong> is a useful starting point. With IW3, try <strong>1.0 or 2.0</strong> for an initial comparison; its default of 5.0 is considerably stronger.</li>
+<li>Check the output format you want. If you are unsure, use <strong>Parallel</strong> for a side-by-side stereo pair, or <strong>Anaglyph Dubois</strong> if you have red/cyan glasses.</li>
+<li>Leave <strong>Allow window violations</strong> unchecked for your first test. Leave the other optional controls alone.</li>
+<li>Click <strong>Convert</strong> and wait for completion. If using Reframe, let the app operate Photos without clicking its controls or switching applications during processing.</li>
+<li>On success, the result is saved beside your original photograph and opened using <strong>Finder Quick Look</strong>. Press <strong>Space</strong> or <strong>Escape</strong> to close Quick Look.</li>
+</ol>
+<p>The app creates a separate result; it does not replace your original photograph. If a final output filename already exists, the app adds a number rather than overwriting it.</p>
+<h2>Choosing an engine</h2>
+<h3>SHARP (Gaussian splats)</h3>
+<p>SHARP builds a representation of the scene, then renders two viewpoints. It can separate foreground objects from the background and create body/face contours, although its interpretation can still be wrong.</p>
+<p>Use the <strong>Depth</strong> menu to adjust separation. If a shifted outline looks unnaturally sharp, see <strong>SHARP Edge Softening</strong> below.</p>
+<p>SHARP needs its separate runtime, renderer and model. Its model is research-restricted: free or personal use does not automatically satisfy its agreement. See <a href="Docs/THIRD_PARTY.md">third-party information</a>.</p>
+<h3>IW3</h3>
+<p>IW3 estimates a depth map, then uses it to construct stereo views. A depth map is an image that represents distance rather than ordinary colors.</p>
+<p>When you select IW3, the <strong>IW3 Model</strong> menu appears. Choose a model you have already downloaded and prepared during setup. Selecting another model does not automatically install it.</p>
+<p>Different models can interpret a photograph differently. If a result has halos, stretched backgrounds or incorrect object depth, try lower strength or compare another prepared model before changing many advanced settings.</p>
+<h3>Apple Reframe</h3>
+<p>This uses the Reframe feature in Photos. Inject Z prepares two working copies and changes one eye's view, preserving the intentional one-eye workflow.</p>
+<p>Photos must have Reframe available and use the separate <strong>InjectZ Working Library.photoslibrary</strong>. Accessibility and Photos automation permissions must be approved. The library guard blocks imports if it cannot verify the correct library.</p>
+<p>During conversion, Photos comes to the front and its editor is operated automatically. Leave the controls alone until the run finishes or reports an error. Processing failures and available pan limits can vary by photograph. A daily quota has not been independently confirmed.</p>
+<p>After successful completion, the app attempts to remove the temporary album. This cleanup is best effort; do not assume it permanently purges all imported media from Photos storage.</p>
+<h2>Choosing output formats</h2>
+<p>You can check more than one format before clicking Convert. The app makes separate output files from the same stereo conversion.</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Parallel</strong></td>
+<td>Full side-by-side stereo: left-eye view on the left, right-eye view on the right. Use a compatible stereo viewer or parallel free-viewing method.</td>
+</tr>
+<tr>
+<td><strong>Crossview</strong></td>
+<td>Side-by-side stereo with the eye order reversed, intended for cross-eyed viewing.</td>
+</tr>
+<tr>
+<td><strong>Anaglyph Full Color</strong></td>
+<td>Combines the eye views into a red/cyan image, preserving more color but potentially producing color conflicts or ghosting.</td>
+</tr>
+<tr>
+<td><strong>Anaglyph Half Color</strong></td>
+<td>A different red/cyan color treatment that reduces some color conflicts.</td>
+</tr>
+<tr>
+<td><strong>Anaglyph Dubois</strong></td>
+<td>Uses a color transformation intended to balance color and ghosting for red/cyan viewing.</td>
+</tr>
+</tbody>
+</table>
+<p>Anaglyphs require <strong>red over the left eye and cyan over the right eye</strong>. Their appearance also depends on the glasses and display. Ordinary side-by-side pairs require an appropriate stereo viewing method; simply looking at both halves normally will not produce the intended effect.</p>
+<p>For comfortable viewing, reduce depth if the pair is difficult to fuse or causes eye strain.</p>
+<h2>Understanding depth strength</h2>
+<p>More depth means greater separation between the two eye views. It can make the 3D effect stronger, but can also expose reconstruction errors, missing-background artifacts or uncomfortable disparities.</p>
+<table>
+<thead>
+<tr>
+<th>SHARP / Reframe setting</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Low</td>
+<td>0.010</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>0.020</td>
+</tr>
+<tr>
+<td>Strong</td>
+<td>0.040</td>
+</tr>
+<tr>
+<td>Very Strong (default)</td>
+<td>0.060</td>
+</tr>
+<tr>
+<td>Extra Strong</td>
+<td>0.080</td>
+</tr>
+<tr>
+<td>Maximum</td>
+<td>0.100</td>
+</tr>
+<tr>
+<td>Extreme</td>
+<td>0.120</td>
+</tr>
+</tbody>
+</table>
+<p>SHARP also offers <strong>Custom depth…</strong>, from 0.001 to 10.000. Large values can reveal serious reconstruction errors; increase gradually. These are camera-separation controls, not distances in feet or meters.</p>
+<p>IW3 uses a separate <strong>3D Strength</strong> scale from <strong>1.0 to 6.0</strong>. Its numbers are not directly comparable to SHARP or Reframe numbers. A value of 0.060 and a value of 6.0 do not mean the same thing.</p>
+<p>The appearance also depends on the photograph. The same setting can produce a strong effect on one photo and a weak effect on another. Reframe may not retain the full requested pan for every image; report any mismatch rather than assuming all slider settings produce identical depth.</p>
+<h2>Stereo-window protection</h2>
+<p>Think of the stereo window as the frame around the picture. A distracting conflict can occur when an object appears in front of that frame while being cut off by its border.</p>
+<p>Leave <strong>Allow window violations</strong> unchecked to use the app's protection. This is intended to keep border-cut objects behind the frame while allowing suitable fully visible objects to come forward. The protection depends on estimated depth/geometry, so it cannot guarantee a perfect result for every photograph.</p>
+<p>Check <strong>Allow window violations</strong> only when you intentionally want to disable that protection and compare the result. IW3 also has a border-preservation option in its advanced panel; leave its default enabled for ordinary protected conversions.</p>
+<h2>SHARP Edge Softening</h2>
+<p>This optional feature softens a narrow band around sufficiently large depth discontinuities. It does not apply a general blur to the whole photograph and does not simply blur every visible color edge.</p>
+<ol>
+<li>Select <strong>SHARP (Gaussian splats)</strong>.</li>
+<li>Click <strong>SHARP Edge Softening…</strong>.</li>
+<li>Check <strong>Soften depth edges</strong>.</li>
+<li>Start with <strong>Radius: 2 pixels</strong> and <strong>Strength: 35%</strong>.</li>
+<li>Close the panel and convert. Compare with a conversion made with softening off.</li>
+</ol>
+<p><strong>Radius</strong> controls how wide the affected edge area is. <strong>Strength</strong> controls how much softening is blended into that area. Excessive values can produce halos or soften details unnecessarily.</p>
+<p>Softening is off by default and resets to off when you relaunch the app. It adds processing work. It is not semantic protection for faces, text or hair: incorrect depth boundaries can affect details you wanted to keep. Image-quality testing of this new feature is ongoing.</p>
+<h2>Advanced IW3 Settings</h2>
+<p>Click <strong>Advanced IW3 Settings…</strong> when IW3 is selected. The panel contains photo-related settings. Each <strong>What is this?</strong> button explains its setting and options.</p>
+<p>For a first conversion, leave the advanced defaults alone. Change one setting at a time so you can tell which change helped. The displayed default is resolved from the installed IW3 version, with certain Inject Z overrides.</p>
+<p>Depth resolution affects the depth-estimation work, not merely the saved photo's dimensions. Increasing it may improve some boundaries but can increase processing time; it does not guarantee better depth or preserve individual hair strands.</p>
+<p>The default photo method in this update is <strong>forward_inpaint</strong>, with <strong>Depth Pro</strong> and strength <strong>5.0</strong> retained. In our Whalom Park comparison, this avoided the repeating grid/gray sky from mlbw_l2_inpaint. It can still create halos or inaccurate boundaries. The other methods remain available for experiments.</p>
+<p>The advanced panel does not add video support to Inject Z.</p>
+<h2>SHARP Manual Depth Editor</h2>
+<p>Use this when a SHARP conversion puts something at the wrong depth. It changes the reconstructed scene rather than retouching the original photograph.</p>
+<h3>Open it</h3>
+<ol>
+<li>Select the <strong>original 2D photo</strong> in the main Inject Z window and select <strong>SHARP</strong>.</li>
+<li>Click <strong>Manual Depth Editor…</strong>, or choose <strong>SHARP → SHARP Manual Depth Editor…</strong>.</li>
+<li>If asked, choose <strong>Resume Selection</strong> to continue saved changes for this exact photo, or <strong>Start Fresh</strong>.</li>
+</ol>
+<p>You do not have to run a regular conversion first. The editor creates its own SHARP reconstruction on the first preview, final render or depth-view request. It reuses that session model for later adjustments. It does not open the last stereo PNG or reuse a model held in the main app’s memory. The same model and source normally give comparable geometry, but this is not a promise of a pixel-identical final render.</p>
+<h3>Example: move the sky farther away</h3>
+<ol>
+<li>Select <strong>Automatic selection box</strong> under Direct tool. Drag a box around the sky region you want the selector to examine.</li>
+<li>Choose <strong>Automatic include sample (+)</strong> and click a few representative sky areas. Choose <strong>Automatic exclude sample (−)</strong> and click foreground objects that must stay out of the selection.</li>
+<li>Click <strong>Find Selection</strong>. Inspect the highlighted area. Automatic samples guide the selection; they do not guarantee exact exclusion.</li>
+<li>Refine it with <strong>Exclude brush</strong> or <strong>Exclude rectangle</strong> to remove unwanted areas, and <strong>Include brush</strong> to add missed sky. Direct corrections stay locked when automatic selection is recalculated. You do not need Find Selection after brushing.</li>
+<li>Protect lettering: for now, an Exclude rectangle around the whole text block is easier than selecting individual letters. The tool does not automatically recognize and protect text.</li>
+<li>If the sky selection touches a person’s outline, try <strong>Selection size: −4</strong> to trim all patches inward. Inspect the result before saving. The amount uses selection-image pixels, not full-resolution pixels.</li>
+<li>Name it <strong>Sky</strong>, choose <strong>Sky/background repair</strong>, set <strong>Depth adjustment</strong> to a modest negative value such as <strong>−0.15</strong>, and use <strong>Uniform shift</strong>.</li>
+<li>Click <strong>Save As New Change</strong>. The change appears in Saved changes on the right. When revising it later, the button becomes <strong>Save Changes</strong>: click that to commit each round of refinements to the same change.</li>
+<li>Leave <strong>Repair exposed sky</strong> checked and click <strong>Preview Stereo Pair</strong>. The first use may take longer while the SHARP model is created or background-repair weights download. Inspect the stereo preview below the controls.</li>
+<li>When satisfied, click <strong>Render Stereo Pair</strong>. It saves a Parallel PNG beside your original without overwriting existing files. Preview does not add output files beside your original.</li>
+</ol>
+<p>Sky repair requires exactly one enabled negative Sky/background change. It builds one background shared by both eyes and places it on a distant plane. It guesses hidden content and cannot guarantee correct details. Overlapping object changes and large adjustments may still create artifacts.</p>
+<h3>Revise a saved change or start another</h3>
+<ul>
+<li><strong>Revise This</strong> loads that change’s mask, amount and shape. Refine it and click <strong>Save Changes</strong>. Merely brushing does not update the saved mask.</li>
+<li><strong>New Separate Change</strong> starts a new selection without removing saved changes. Use it for a different object; save the current change first.</li>
+<li><strong>Apply in next render</strong> is the enable checkbox. Uncheck it to compare without deleting the change.</li>
+<li><strong>Include in merge</strong> only marks changes for merging; it is not the enable checkbox.</li>
+<li>To combine revisions of the same sky, check them and use <strong>Keep newest selection (revisions)</strong> followed by <strong>Merge Checked Changes</strong>. It keeps the newest mask, amount and shape. <strong>Combine selected areas</strong> unions their masks and may restore pixels removed in a later revision. Amounts are never added together by merging.</li>
+<li><strong>Use Current Selection</strong> assigns the working mask to a saved change for revision. Click Save Changes to commit it. Usually Revise This is the clearer choice.</li>
+</ul>
+<h3>Make a smooth or curved correction</h3>
+<p>For objects, choose <strong>Object depth adjustment</strong>, not Sky/background repair. This preserves existing SHARP contours while changing their depth.</p>
+<ul>
+<li><strong>Uniform shift:</strong> the same entered amount throughout the selection.</li>
+<li><strong>Directional gradient:</strong> choose this, click Draw Shape Guide, and drag from the place needing <strong>zero</strong> adjustment to the place needing the <strong>full</strong> adjustment. For a piece that should move back more on its right side, use a negative amount and drag left-to-right.</li>
+<li><strong>Rounded adjustment:</strong> drag from the strongest center to the radius where the adjustment should fade to zero. Useful for a localized curved correction.</li>
+<li><strong>Edge feather:</strong> fades the adjustment inward around the selection boundary. It does not expand the selection or blur the whole photo.</li>
+</ul>
+<p>Positive Depth adjustment means nearer; negative means farther. Start small, save, and preview. These controls do not rerun SHARP with verbal instructions or recover guaranteed hidden geometry.</p>
+<h3>View the model as a depth map</h3>
+<p>Click <strong>Update Depth Views</strong>, then choose <strong>Original depth</strong>, <strong>Adjusted depth</strong>, or <strong>Photo + adjusted depth</strong>. White means nearer; dark means farther or uncovered. Both grayscale views use the same scale, based on the original model. They project the actual Gaussian splats, not a new depth estimate. Save changes and update these views after revisions.</p>
+<h3>Navigation, selection visibility and help</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>How</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Move around a zoomed image</td>
+<td>Hold Space and drag in any direction.</td>
+</tr>
+<tr>
+<td>Zoom at the cursor</td>
+<td>Hold Z and press + / −; Z+0 returns to Fit. Maximum is 32×.</td>
+</tr>
+<tr>
+<td>Resize a brush</td>
+<td>Tap [ or ]; hold to repeat. The circle shows its footprint.</td>
+</tr>
+<tr>
+<td>Undo/Redo a direct stroke or rectangle</td>
+<td>Undo / Redo, or Command-Z / Command-Shift-Z.</td>
+</tr>
+<tr>
+<td>Remove an automatic sample dot</td>
+<td>Point at it and press Delete, then confirm.</td>
+</tr>
+<tr>
+<td>See the selection more clearly</td>
+<td>Choose bright/striped overlay or Mask only; adjust Color, Visibility and Gentle pulse.</td>
+</tr>
+<tr>
+<td>Explain a control</td>
+<td>Hover over its circled <strong>?</strong> for “What is this?”; click for an explanation. Close or Escape dismisses help.</td>
+</tr>
+</tbody>
+</table>
+<p>Undo/Redo covers direct brushes and rectangles. It does not undo every action or restore deleted saved changes. Sample dots may disappear when a saved mask is loaded or a new selection is started; the saved mask itself remains available.</p>
+<h3>Close or continue an editor session</h3>
+<p>Command-W closes the editor window while keeping its session available. Reopen it from the SHARP menu. <strong>New Editor Session for Selected Photo…</strong> stops the old session and starts one for the main app’s selected photo. <strong>Close Editor Session</strong> stops it so you can use regular Convert again. Save changes before either action or before quitting Inject Z. Quitting stops active editor rendering. Saved selections remain on disk for resuming.</p>
+<p>The integrated editor currently exports <strong>Parallel</strong> pairs. The main app’s multiple-output checkboxes apply to regular conversions. Do not run the standalone editor alongside the integrated editor.</p>
+<h2>Additional controls</h2>
+<ul>
+<li><strong>Save separate left/right images:</strong> Requests separate eye images where supported by the selected engine. Check the files created after the run; support and retention differ between engine paths.</li>
+<li><strong>Generate Depth Map:</strong> Currently available through IW3. The current GUI exports an editable layered PSD beside the source when the PSD helper succeeds; the native depth data stays in its internal run folder. This button does not itself generate the normal stereo output. SHARP and Reframe do not provide this export through the current GUI.</li>
+<li><strong>Show Result in Finder:</strong> Reveals the last recorded result in Finder if you closed its preview or want to locate it again.</li>
+<li><strong>Resume Reframe…:</strong> A recovery control for an interrupted run. Select the same original photo, then choose the existing run folder requested by the dialog. Use it only when you know which run you are recovering; do not guess among working folders.</li>
+</ul>
+<h2>Where results go</h2>
+<p>Completed display images are saved in the same folder as your source photograph. Their names identify Inject Z, the engine, the output format and depth, for example:</p>
+<p><code>FamilyPhoto_InjectZ_SHARP_Parallel_Depth0.040.png</code></p>
+<p>Repeated conversions add a number when necessary. A run with several formats opens one result automatically; the other outputs are beside it in Finder. Internal working files and logs may remain under the InjectZ installation folder.</p>
+<h2>Common problems</h2>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Missing runtime, model or helper</td>
+<td>Revisit the setup documentation. START_HERE.command assists with a new installation but does not repair an existing one automatically.</td>
+</tr>
+<tr>
+<td>A newly selected IW3 model fails</td>
+<td>Run DOWNLOAD_IW3_MODELS.command and prepare that model/method using the same cache paths.</td>
+</tr>
+<tr>
+<td>Photos reports the wrong library or library verification fails</td>
+<td>Stop. Open the dedicated working library; do not bypass the guard or use your personal library.</td>
+</tr>
+<tr>
+<td>Reframe permission prompt repeats</td>
+<td>Confirm that the correct installed app has Accessibility permission and that Photos automation is approved. Save the exact error; rebuilding or changing signing identity can invalidate approval.</td>
+</tr>
+<tr>
+<td>Depth seems too weak or too strong</td>
+<td>Try another strength on the same photo. Compare using the same viewing method and image size.</td>
+</tr>
+<tr>
+<td>A shifted edge looks too sharp</td>
+<td>Compare optional SHARP edge softening at modest settings.</td>
+</tr>
+<tr>
+<td>SHARP reuses an incorrect scene after you edit/replace a same-named photo</td>
+<td>Report it. The current reconstruction cache uses the photo's basename; stale cache reuse is a known limitation. Do not delete model weights or the whole installation as a remedy.</td>
+</tr>
+<tr>
+<td>Conversion fails</td>
+<td>Read the app's status and exact error. Some engine failures save an InjectZ Error Log on the Desktop; Reframe errors may identify preserved working files. Keep those for diagnosis.</td>
+</tr>
+</tbody>
+</table>
+<p>If asking for help, include the engine, selected model, depth, output formats and exact error. For quality problems, supply the original and the generated result if you are comfortable sharing them.</p>
+<h2>Current limitations</h2>
+<p>The guided installer is a preview, model licenses differ, and conversions are AI estimates rather than exact reconstructions. Individual photos may contain incorrect depth, halos or invented background areas. Multiple concurrent SHARP conversions are not supported safely by the current extension-lock handling. Use one conversion at a time, and keep your original photographs.</p>
+<h2>Editor control reference</h2>
+<p>The same explanations are available from the circled question marks in the editor.</p>
+<h3>Selection tools</h3>
+<p><strong>Exclude brush</strong> — Drag to remove selected pixels beneath the brush circle. It changes only your stroke and overrides automatic selection in that area. Find Selection is not needed afterward. Use brackets to adjust radius and Undo to reverse a stroke.</p>
+<p><strong>Include brush</strong> — Drag to add pixels beneath the brush circle to the selection. It changes only your stroke, even if the automatic selection disagrees. You need an existing selection first. Find Selection is not needed afterward.</p>
+<p><strong>Exclude rectangle</strong> — Drag a rectangle to remove all selected pixels inside it. Useful for protecting an entire text block or foreground object. It does not recognize individual letters. This correction stays locked when Find Selection is recalculated.</p>
+<p><strong>Include rectangle</strong> — Drag a rectangle to add every pixel inside it to the selection. It is a direct geometric edit, not automatic object recognition. Undo reverses the last direct rectangle.</p>
+<p><strong>Draw Shape Guide</strong> — Choose Directional gradient or Rounded adjustment first. For a gradient, drag from zero adjustment to full adjustment. For rounded shaping, drag from the strongest center to the zero-strength radius. The guide controls how the entered amount varies inside the selected area.</p>
+<p><strong>Automatic selection box</strong> — Drag a box around the area the automatic selector should examine. Drawing the box alone does not create a mask. Add samples as needed and click Find Selection. A box is not a direct include rectangle; it guides the automatic calculation.</p>
+<p><strong>Automatic exclude sample</strong> — Click to place a red sample on something the automatic selector should exclude, such as a person or propeller. Then click Find Selection to recalculate. Samples are guidance, not hard pixel locks; direct Exclude brush or rectangle corrections provide locks. Point at a sample and press Delete to remove it.</p>
+<p><strong>Automatic include sample</strong> — Click to place a green sample on an area the automatic selector should include, such as the sky. Click Find Selection afterward. Samples guide the calculation but do not guarantee every nearby pixel is included. Use direct Include brush for an exact correction.</p>
+<h3>Editor settings</h3>
+<p><strong>Direct tool</strong> — Choose how to change the selected area. Automatic tools help create the first selection. Direct brushes and rectangles make precise corrections to the existing highlight. The question mark explains the tool currently selected.</p>
+<p><strong>Brush radius</strong> — Controls the circle painted by an Include or Exclude brush. Radius 5 means about 10 selection-image pixels across. Tap [ to make it smaller or ] to make it larger. The circle follows zoom; it shows what will be painted.</p>
+<p><strong>Zoom</strong> — Fit shows the whole image. Larger values enlarge it for precise work, up to 32×. Point at the desired area, hold Z and press + or −; Z+0 returns to Fit. Hold Space and drag to move your view without painting.</p>
+<p><strong>Selection display</strong> — Bright overlay colors selected pixels. Striped overlay adds a pattern to make small patches easier to see. Mask only shows selected areas in white and unselected areas in black. This changes visibility, not the selection or output.</p>
+<p><strong>Highlight color</strong> — Choose green, magenta or amber so the selection stands out against your photograph. This display color does not change the finished image.</p>
+<p><strong>Visibility</strong> — Controls how strongly the selection highlight covers the photo. Increase it to find tiny selected patches; decrease it to see image details underneath. It does not change depth.</p>
+<p><strong>Gentle pulse</strong> — Slowly varies the selection highlight so small patches attract your attention. Turn it off for a steady highlight. It does not change selected pixels.</p>
+<p><strong>Image view</strong> — Photo shows the source. Original depth shows the unedited SHARP splats as a grayscale depth view. Adjusted depth includes saved enabled changes. Photo + adjusted depth overlays depth on the photo. White means nearer and dark means farther or uncovered. Click Update Depth Views after changing saved changes.</p>
+<p><strong>Shrink or expand selection</strong> — Negative values shrink all selected patches; positive values expand them. Start at 0. Try −4 or −5 to leave space near a foreground edge. Values use the smaller selection image’s pixels, not screen pixels or full-resolution pixels. Each value is measured from the current un-resized mask; it is not added repeatedly.</p>
+<p><strong>Selection size in pixels</strong> — Enter the same shrink/expand value as the slider, from −20 to +20. Negative shrinks; positive expands. Reset to 0 restores the un-resized selection. Save Changes afterward to include this adjustment in the render.</p>
+<p><strong>Change name</strong> — Give this selected area a useful name, such as Sky or Right sleeve. Names help identify saved changes and do not affect depth.</p>
+<p><strong>Change type</strong> — Sky/background repair is for a background you want farther away; it uses a uniform change and can reconstruct exposed background. Object depth adjustment changes existing splats and supports gradients or rounded shaping. These are different operations; use Object for shaped foreground corrections.</p>
+<p><strong>Depth adjustment</strong> — Positive values move selected splats nearer; negative values move them farther away. Start gently, such as −0.15 for sky or +0.15 for an object. This is not a distance in feet or meters and is separate from camera spacing. The change preserves the existing contours, with optional shaping. Range: −0.9 to +2. Save Changes before previewing.</p>
+<p><strong>Depth shape</strong> — Uniform shift applies the full adjustment throughout the selection. Directional gradient smoothly rises from zero at the guide’s start to the full amount at its end. Rounded adjustment is strongest at the guide’s start and fades to zero at the guide’s radius. Click Draw Shape Guide and drag to position it. Sky repair uses Uniform shift.</p>
+<p><strong>Edge feather</strong> — Fades the depth change inward from the selection boundary. 0 means no feather. A larger width makes a smoother transition back into the original model. It does not expand the mask or blur the whole photograph. Width is measured in selection-image pixels.</p>
+<p><strong>Camera spacing</strong> — Sets separation between the two rendered viewpoints, like the SHARP depth strength in the main app. Default is 0.060. Larger values increase visible parallax and may reveal missing geometry or artifacts. This is independent of each saved change’s Depth adjustment. Range: 0.001 to 10.</p>
+<p><strong>Repair exposed sky</strong> — Uses LaMa to reconstruct a shared background and places it behind the scene. Requires exactly one enabled negative Sky/background repair change; object changes may also be enabled. The first use may download repair weights. The same reconstructed background is used for both eyes. It makes a guess, not a guaranteed recovery of hidden detail, and is intended for sky/background rather than faces or lettering.</p>
+<p><strong>Merge method</strong> — Keep newest selection is for several revisions of the same area: it retains the newest mask, including its exclusions. Combine selected areas unions the masks and can bring back pixels excluded in a later revision. Both keep the newest change’s amount and shape; amounts are not added together. Check Include in merge on at least two changes, then Merge Checked Changes.</p>
+<h3>Editor buttons</h3>
+<p><strong>Find Selection</strong> — First draw an Automatic selection box and add include/exclude samples if needed. This button calculates an automatic mask. It can reconsider areas throughout the box, but direct brush and rectangle corrections are reapplied afterward. After direct painting, you do not need to click this again.</p>
+<p><strong>Undo</strong> — Reverses the most recent direct brush stroke or direct rectangle. Command-Z also works. It does not undo automatic sample dots, saved-change deletion or all other actions.</p>
+<p><strong>Redo</strong> — Restores the last undone direct brush stroke or rectangle. Command-Shift-Z also works. A new direct stroke clears the redo history.</p>
+<p><strong>Update Depth Views</strong> — Builds the editor’s SHARP model on first use, then projects its actual splats as original and adjusted depth views. It does not run another depth estimator or LaMa inpainting. Save Changes first. Both views share the same grayscale scale so you can compare them.</p>
+<p><strong>Shrink by one pixel</strong> — Decreases the selection-size value by 1. It trims all disconnected selected patches at once. Save Changes before previewing.</p>
+<p><strong>Expand by one pixel</strong> — Increases the selection-size value by 1. It expands all disconnected selected patches at once. Save Changes before previewing.</p>
+<p><strong>Reset selection size</strong> — Returns shrink/expand to 0 and restores the un-resized selection. Direct brush and rectangle corrections remain.</p>
+<p><strong>Clear Direct Edits</strong> — Removes all direct brush and rectangle corrections after confirmation. The automatic selection remains. Use this only if you want to start the manual refinement again.</p>
+<p><strong>Save this change</strong> — Save As New Change adds the current mask, name, amount, type and shape to Saved changes. Once revising an existing change, Save Changes updates that same change. Brush strokes are not automatically committed to the saved mask: click Save Changes before a preview or final render.</p>
+<p><strong>New Separate Change</strong> — Starts a fresh independent selection and removes the current highlight and sample dots from the workspace. Existing saved changes remain on the right. Save the current change first if you want to keep it. Use this when changing a different part of the image.</p>
+<p><strong>Draw Shape Guide</strong> — Choose Directional gradient or Rounded adjustment first. For a gradient, drag from zero adjustment to full adjustment. For rounded shaping, drag from the strongest center to the zero-strength radius. The guide controls how the entered amount varies inside the selected area.</p>
+<p><strong>Remove Last Saved Change</strong> — Deletes the last saved change after confirmation. It does not undo a brush stroke. There is no saved-change deletion redo; use Apply in next render to compare without deleting.</p>
+<p><strong>Clear All Saved Changes</strong> — Deletes every saved change after confirmation. Your current working selection stays available. This cannot be undone with the brush Undo button.</p>
+<p><strong>Preview Stereo Pair</strong> — Renders your enabled saved changes and displays the latest Parallel stereo preview below the controls. It does not save another output beside the original. The session keeps only the latest preview. Save Changes first.</p>
+<p><strong>Render Stereo Pair</strong> — Creates a final Parallel PNG beside your original photo. Existing files are not overwritten; a number is added if needed. Use Preview Stereo Pair for repeated tests and render when satisfied. The editor currently saves Parallel, even if other formats are checked in the main app.</p>
+<p><strong>Merge Checked Changes</strong> — Check Include in merge on at least two saved changes and choose a merge method. The selected changes become one, using the newest amount and shape. Merge is not an addition of their depth amounts. Save the working selection before merging.</p>
+<h3>Saved-change controls</h3>
+<p><strong>Apply in next render</strong> — Enables or disables this saved change without deleting it. Uncheck it to compare your result with and without this change. A disabled change is skipped by previews and final renders.</p>
+<p><strong>Saved change name</strong> — Rename this saved change for reference. Changing this field updates the name immediately; it does not change the selected pixels.</p>
+<p><strong>Saved depth adjustment</strong> — Changes this saved change’s amount immediately. Positive is nearer; negative is farther. Shape and selection stay the same. Preview again to inspect the result.</p>
+<p><strong>Revise This</strong> — Loads this saved mask, name, amount and shape for refinement. After changing the mask or main controls, click Save Changes to update this same saved change. It does not create a second change unless you deliberately start a new one.</p>
+<p><strong>Use Current Selection</strong> — Assigns your current working mask to this saved change for revision. It loads that saved change’s name, amount and shape and marks the mask as unsaved. Click Save Changes to commit it. Use Revise This if you want to load the saved mask instead.</p>
+<p><strong>Delete saved change</strong> — Deletes this saved change after confirmation. This is separate from brush Undo/Redo. Disable Apply in next render if you only want to compare without losing it.</p>
+<p><strong>Include in merge</strong> — Marks this saved change for Merge Checked Changes. It does not enable or disable the change’s effect. Apply in next render controls whether it affects the output.</p></body></html>

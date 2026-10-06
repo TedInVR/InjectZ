@@ -35,9 +35,12 @@ final class DropView: NSView {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var window: NSWindow!
+    var sharpDepthEditor: SharpDepthEditorController?
+    var sharpDepthEditorButton: NSButton!
     var photoField: NSTextField!
     var enginePopup: NSPopUpButton!
     var depthPopup: NSPopUpButton!
+    var customSharpDepth: Double = 0.250
     var depthLabel: NSTextField!
     var iw3ModelLabel: NSTextField!
     var iw3ModelPopup: NSPopUpButton!
@@ -116,32 +119,137 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         buildUI()
     }
 
+    @objc func checkForInjectZUpdates(_ sender: Any?) {
+        let url = URL(string: "https://api.github.com/repos/TedInVR/InjectZ/releases/latest")!
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 20
+        request.setValue("InjectZ/0.3.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                let alert = NSAlert()
+                let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.3.0"
+                if (response as? HTTPURLResponse)?.statusCode == 404 {
+                    alert.messageText = "No published release yet"
+                    alert.informativeText = "You have Inject Z \(current). Releases will appear on GitHub when published."
+                } else if error == nil, (response as? HTTPURLResponse)?.statusCode == 200,
+                          let data, let info = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+                          let tag = info["tag_name"] as? String {
+                    let latest = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
+                    let valid = latest.range(of: "^[0-9]+\\.[0-9]+\\.[0-9]+$", options: .regularExpression) != nil
+                    if valid && latest.compare(current, options: .numeric) == .orderedDescending {
+                        alert.messageText = "Inject Z \(latest) is available"
+                        alert.informativeText = "You have \(current). Open the release page to read the changes and download the update. Quit Inject Z before running UPDATE_EXISTING.command from the downloaded package."
+                        alert.addButton(withTitle: "Open Release Page")
+                        alert.addButton(withTitle: "Later")
+                        if alert.runModal() == .alertFirstButtonReturn {
+                            NSWorkspace.shared.open(URL(string: "https://github.com/TedInVR/InjectZ/releases/latest")!)
+                        }
+                        return
+                    }
+                    alert.messageText = valid ? "Inject Z is up to date" : "Could not read the release version"
+                    alert.informativeText = "Installed version: \(current). Latest published tag: \(tag)."
+                } else {
+                    alert.messageText = "Could not check for updates"
+                    alert.informativeText = "Check your internet connection and try again. You can also visit github.com/TedInVR/InjectZ/releases."
+                }
+                alert.runModal()
+            }
+        }.resume()
+    }
+
+    @objc func showInjectZAbout(_ sender: Any?) {
+        let credits = NSMutableAttributedString(string: "Developed by Ted Whitten\nVibe coded with ChatGPT\n\n")
+        credits.append(NSAttributedString(string: "Inject Z on GitHub", attributes: [
+            .link: URL(string: "https://github.com/TedInVR/InjectZ")!,
+            .foregroundColor: NSColor.linkColor,
+            .underlineStyle: NSUnderlineStyle.single.rawValue
+        ]))
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        credits.addAttribute(.paragraphStyle, value: paragraph, range: NSRange(location: 0, length: credits.length))
+        NSApp.orderFrontStandardAboutPanel(options: [
+            .applicationName: "Inject Z",
+            .credits: credits
+        ])
+    }
+
+    @objc func showInjectZHelp(_ sender: Any?) {
+        guard let guide = Bundle.main.url(forResource: "InjectZ_User_Guide", withExtension: "html") else {
+            let alert = NSAlert()
+            alert.messageText = "User guide is missing"
+            alert.informativeText = "Reinstall the About and Help update to restore the bundled guide."
+            alert.runModal()
+            return
+        }
+        if !NSWorkspace.shared.open(guide) {
+            let alert = NSAlert()
+            alert.messageText = "Could not open the user guide"
+            alert.informativeText = "The guide is in InjectZ.app/Contents/Resources/InjectZ_User_Guide.html."
+            alert.runModal()
+        }
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag { window?.makeKeyAndOrderFront(nil) }
+        return true
+    }
+
     func buildMainMenu() {
         let mainMenu = NSMenu()
 
         let appMenuItem = NSMenuItem()
         mainMenu.addItem(appMenuItem)
 
-        let appMenu = NSMenu()
+        let appMenu = NSMenu(title: "Inject Z")
         appMenuItem.submenu = appMenu
 
         let aboutItem = NSMenuItem(
-            title: "About InjectZ",
-            action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
+            title: "About Inject Z",
+            action: #selector(showInjectZAbout(_:)),
             keyEquivalent: ""
         )
-        aboutItem.target = NSApp
+        aboutItem.target = self
         appMenu.addItem(aboutItem)
+        let helpItem = NSMenuItem(title: "Help", action: #selector(showInjectZHelp(_:)), keyEquivalent: "")
+        helpItem.target = self
+        appMenu.addItem(helpItem)
+        let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForInjectZUpdates(_:)), keyEquivalent: "")
+        updateItem.target = self
+        appMenu.addItem(updateItem)
         appMenu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem(
-            title: "Quit InjectZ",
+            title: "Quit Inject Z",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         )
         quitItem.target = NSApp
         appMenu.addItem(quitItem)
 
+        // A nil target uses AppKit's responder chain, so Close reaches the active window.
+        let fileItem = NSMenuItem(title: "File", action: nil, keyEquivalent: "")
+        let fileMenu = NSMenu(title: "File")
+        let closeItem = NSMenuItem(title: "Close Window", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        closeItem.keyEquivalentModifierMask = [.command]
+        fileMenu.addItem(closeItem)
+        fileItem.submenu = fileMenu
+        mainMenu.addItem(fileItem)
+
+        let depthMenuItem = NSMenuItem(title: "SHARP", action: nil, keyEquivalent: "")
+        let depthMenu = NSMenu(title: "SHARP")
+        let openEditor = NSMenuItem(title: "SHARP Manual Depth Editor…", action: #selector(showSharpDepthEditor), keyEquivalent: "d")
+        openEditor.keyEquivalentModifierMask = [.command, .shift]
+        openEditor.target = self
+        depthMenu.addItem(openEditor)
+        let newEditor = NSMenuItem(title: "New Editor Session for Selected Photo…", action: #selector(newSharpDepthEditorSession), keyEquivalent: "")
+        newEditor.target = self
+        depthMenu.addItem(newEditor)
+        let stopEditor = NSMenuItem(title: "Close Editor Session", action: #selector(closeSharpDepthEditorSession), keyEquivalent: "")
+        stopEditor.target = self
+        depthMenu.addItem(stopEditor)
+        depthMenuItem.submenu = depthMenu
+        mainMenu.addItem(depthMenuItem)
         NSApp.mainMenu = mainMenu
     }
 
@@ -150,11 +258,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func buildUI() {
+        NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in self?.sharpDepthEditor?.stop() }
         let frame = NSRect(x: 0, y: 0, width: 600, height: 470)
         window = NSWindow(contentRect: frame,
                           styleMask: [.titled, .closable, .miniaturizable],
                           backing: .buffered, defer: false)
         window.title = "Inject Z"
+        window.isReleasedWhenClosed = false
         window.center()
 
         let c = DropView(frame: frame)
@@ -200,12 +310,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         enginePopup.target = self
         enginePopup.action = #selector(engineChanged)
         c.addSubview(enginePopup)
+        sharpDepthEditorButton = NSButton(title: "Manual Depth Editor…", target: self, action: #selector(showSharpDepthEditor))
+        sharpDepthEditorButton.frame = NSRect(x: 375, y: 291, width: 195, height: 30)
+        c.addSubview(sharpDepthEditorButton)
 
         depthLabel = NSTextField(labelWithString: "Depth")
         depthLabel.frame = NSRect(x: 30, y: 255, width: 120, height: 24)
         c.addSubview(depthLabel)
         depthPopup = NSPopUpButton(frame: NSRect(x: 145, y: 251, width: 220, height: 30))
-        depthPopup.addItems(withTitles: ["Low (0.010)", "Medium (0.020)", "Strong (0.040)", "Very Strong (0.060)"])
+        depthPopup.addItems(withTitles: ["Low (0.010)", "Medium (0.020)", "Strong (0.040)", "Very Strong (0.060)", "Extra Strong (0.080)", "Maximum (0.100)", "Extreme (0.120)"])
+        depthPopup.addItem(withTitle: "Custom depth…")
+        depthPopup.target = self
+        depthPopup.action = #selector(depthChanged(_:))
         depthPopup.selectItem(at: 3)
         c.addSubview(depthPopup)
 
@@ -277,7 +393,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
+    @objc func depthChanged(_ sender: NSPopUpButton) {
+        guard enginePopup.indexOfSelectedItem == 0,
+              sender.titleOfSelectedItem?.hasPrefix("Custom depth") == true else { return }
+        let alert = NSAlert()
+        alert.messageText = "Custom SHARP depth"
+        alert.informativeText = "Enter a camera separation from 0.001 to 10.000 (up to three decimal places). Try 0.250, then 0.500. Larger values may reveal reconstruction artifacts."
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 280, height: 26))
+        field.stringValue = String(format: "%.3f", customSharpDepth)
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Use Depth")
+        alert.addButton(withTitle: "Cancel")
+        alert.window.initialFirstResponder = field
+        while true {
+            guard alert.runModal() == .alertFirstButtonReturn else {
+                sender.selectItem(at: 3)
+                return
+            }
+            let text = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")
+            if let value = Double(text), value.isFinite, value >= 0.001, value <= 10.0 {
+                customSharpDepth = (value * 1000).rounded() / 1000
+                sender.selectedItem?.title = String(format: "Custom depth (%.3f)…", customSharpDepth)
+                return
+            }
+            alert.informativeText = "Please enter a number between 0.001 and 10.000."
+        }
+    }
+
     @objc func engineChanged() {
+        sharpDepthEditorButton?.isHidden = enginePopup.indexOfSelectedItem != 0
+        if enginePopup.indexOfSelectedItem != 0,
+           let item = depthPopup.itemArray.first(where: { $0.title.hasPrefix("Custom depth") }) {
+            if depthPopup.selectedItem === item { depthPopup.selectItem(at: 3) }
+            depthPopup.removeItem(withTitle: item.title)
+            if sharpDepthSelection > 6 { sharpDepthSelection = 3 }
+        }
         let iw3 = enginePopup.indexOfSelectedItem == 1
         if iw3 {
             sharpDepthSelection = depthPopup.indexOfSelectedItem
@@ -289,10 +439,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if depthLabel.stringValue == "3D Strength" {
                 iw3StrengthSelection = depthPopup.indexOfSelectedItem
                 depthPopup.removeAllItems()
-                depthPopup.addItems(withTitles: ["Low (0.010)", "Medium (0.020)", "Strong (0.040)", "Very Strong (0.060)"])
+                depthPopup.addItems(withTitles: ["Low (0.010)", "Medium (0.020)", "Strong (0.040)", "Very Strong (0.060)", "Extra Strong (0.080)", "Maximum (0.100)", "Extreme (0.120)"])
                 depthPopup.selectItem(at: sharpDepthSelection)
             }
             depthLabel.stringValue = "Depth"
+        }
+        if enginePopup.indexOfSelectedItem == 0,
+           !depthPopup.itemArray.contains(where: { $0.title.hasPrefix("Custom depth") }) {
+            depthPopup.addItem(withTitle: String(format: "Custom depth (%.3f)…", customSharpDepth))
         }
         iw3ModelLabel.isHidden = !iw3
         iw3ModelPopup.isHidden = !iw3
@@ -420,6 +574,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         label("Stereo generation method", 677)
         methodPopup = NSPopUpButton(frame: NSRect(x: 200, y: 673, width: 265, height: 28))
         methodPopup.addItems(withTitles: ["mlbw_l2_inpaint", "row_flow", "row_flow_v3", "grid_sample", "backward", "forward", "forward_fill", "forward_inpaint", "mlbw_l2", "mlbw_l4", "mlbw_l2s", "mlbw_l4s", "mask_mlbw_l2", "row_flow_sym", "row_flow_v3_sym", "row_flow_v2"])
+        methodPopup.selectItem(withTitle: "forward_inpaint")
         content.addSubview(methodPopup)
         label("Convergence (0–1)", 630)
         convergenceField = NSTextField(frame: NSRect(x: 200, y: 627, width: 100, height: 26))
@@ -469,6 +624,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func convert() {
+        if let editor = sharpDepthEditor, editor.task.isRunning {
+            statusLabel.stringValue = "Finish the editor session first: SHARP menu → Close Editor Session."
+            return
+        }
         runConversion(depthMapOnly: false)
     }
 
@@ -536,7 +695,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 return
             }
             var args = [root.appendingPathComponent("Development/IW3/photo_iw3.py").path, "-i", photo.path, "-o", runDir.path,
-                        "--method", methodPopup?.titleOfSelectedItem ?? "mlbw_l2_inpaint", "--divergence", depth,
+                        "--method", methodPopup?.titleOfSelectedItem ?? "forward_inpaint", "--divergence", depth,
                         "--convergence", String(convergence), "--depth-model",
                         self.iw3ModelPopup.titleOfSelectedItem ?? "DepthPro"]
             if foreground != 0 { args += ["--foreground-scale", String(foreground)] }
@@ -554,14 +713,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             env["TORCH_HOME"] = cache.appendingPathComponent("torch").path
             env["HF_HUB_OFFLINE"] = "1"
         } else {
-            let sharpDepth = ["low", "medium", "strong", "very-strong"][depthPopup.indexOfSelectedItem]
-            depth = sharpDepth
+            let isCustom = depthPopup.titleOfSelectedItem?.hasPrefix("Custom depth") == true
+            let sharpDepth = isCustom ? "very-strong" : ["low", "medium", "strong", "very-strong", "extra-strong", "maximum", "extreme"][depthPopup.indexOfSelectedItem]
+            depth = isCustom ? String(format: "%.3f", customSharpDepth) : sharpDepth
             outputDir = root.appendingPathComponent("output/InjectZ-" + UUID().uuidString)
             do { try FileManager.default.createDirectory(at: outputDir, withIntermediateDirectories: true) }
             catch { statusLabel.stringValue = "Could not create SHARP working folder: \(error.localizedDescription)"; return }
             task.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
             var args = [root.appendingPathComponent("injectz_engine.py").path,
                         photo.path, "--depth", sharpDepth, "--format", format, "--output-dir", outputDir.path]
+            if isCustom { args += ["--baseline", depth] }
             if keepEyes.state == .on { args.append("--keep-eyes") }
             if softenSharpEdges?.state == .on {
                 args += ["--soften-depth-edges", "--edge-soften-radius", String(edgeRadius?.doubleValue ?? 2),
@@ -668,7 +829,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                             }
                         }
                     } else {
-                        let baseline = ["low":"0.010", "medium":"0.020", "strong":"0.040", "very-strong":"0.060"][depth]!
+                        let baseline = ["low":"0.010", "medium":"0.020", "strong":"0.040", "very-strong":"0.060", "extra-strong":"0.080", "maximum":"0.100", "extreme":"0.120"][depth] ?? depth
                         let generated = outputDir.appendingPathComponent("\(stem)_Parallel_InjectZ_SHARP_Baseline\(baseline).png")
                         let generatedDate = try? generated.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
                         if let generatedDate, generatedDate >= conversionStarted.addingTimeInterval(-2) {
@@ -918,8 +1079,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func checkReframePermission() -> Bool {
         if AXIsProcessTrusted() { return true }
         let a = NSAlert()
-        a.messageText = "InjectZ needs Accessibility permission"
-        a.informativeText = "Grant Accessibility access to the main ~/InjectZ/InjectZ.app in System Settings > Privacy & Security > Accessibility. If several InjectZ entries appear, remove the duplicates and add that exact app path once. No photos were imported."
+        a.messageText = "Inject Z needs Accessibility permission"
+        a.informativeText = "Grant Accessibility access to the main ~/InjectZ/InjectZ.app in System Settings > Privacy & Security > Accessibility. If several Inject Z entries appear, remove the duplicates and add that exact app path once. No photos were imported."
         a.addButton(withTitle: "Open Accessibility Settings")
         a.addButton(withTitle: "Cancel")
         if a.runModal() == .alertFirstButtonReturn {
@@ -1406,7 +1567,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard enterReframeEditor() else { return }
          // No assumption that selecting an item opens its Reframe editor.
          // Require the expected controls before changing any sliders.
-        guard editReframeRight(pan: [0.010, 0.020, 0.040, 0.060][max(0, min(3, depthPopup.indexOfSelectedItem))]) else { return }
+        guard editReframeRight(pan: [0.010, 0.020, 0.040, 0.060, 0.080, 0.100, 0.120][max(0, min(6, depthPopup.indexOfSelectedItem))]) else { return }
         let dir = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("InjectZ/Development/Reframe")
         let exporter = Process()
         exporter.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
@@ -1546,3 +1707,147 @@ let delegate = AppDelegate()
 app.delegate = delegate
 app.setActivationPolicy(.regular)
 app.run()
+
+import Cocoa
+import WebKit
+
+// One retained editor session; closing the window preserves unsaved selections.
+final class SharpDepthEditorController: NSObject, NSWindowDelegate, WKNavigationDelegate, WKUIDelegate {
+    let window: NSWindow
+    let web: WKWebView
+    let task = Process()
+    let sessionDirectory: URL
+    let photo: URL
+    var readyTimer: Timer?
+    var elapsed = 0
+    var logHandle: FileHandle?
+
+    init(photo: URL) throws {
+        self.photo = photo
+        sessionDirectory = FileManager.default.temporaryDirectory.appendingPathComponent("InjectZ-Editor-" + UUID().uuidString)
+        try FileManager.default.createDirectory(at: sessionDirectory, withIntermediateDirectories: true)
+        let config = WKWebViewConfiguration()
+        config.websiteDataStore = .nonPersistent()
+        web = WKWebView(frame: .zero, configuration: config)
+        window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1200, height: 850), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        super.init()
+        window.title = "SHARP Manual Depth Editor — " + photo.lastPathComponent
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+        window.contentView = web
+        window.minSize = NSSize(width: 820, height: 600)
+        web.navigationDelegate = self
+        web.uiDelegate = self
+        web.loadHTMLString("<body style='font:20px system-ui;padding:40px'>Opening SHARP Manual Depth Editor…<p>If a saved selection exists, choose Resume or Start Fresh in the Mac dialog.</p></body>", baseURL: nil)
+        let root = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("InjectZ")
+        task.executableURL = root.appendingPathComponent("Runtime/python/bin/python3")
+        task.arguments = [root.appendingPathComponent("Development/SHARPDepthEditor/server.py").path, photo.path]
+        task.currentDirectoryURL = root.appendingPathComponent("Development/SHARPDepthEditor")
+        var env = ProcessInfo.processInfo.environment
+        env["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        env["PYTHONUNBUFFERED"] = "1"
+        env["INJECTZ_EDITOR_EMBEDDED"] = "1"
+        env["INJECTZ_EDITOR_URL_FILE"] = sessionDirectory.appendingPathComponent("url.txt").path
+        task.environment = env
+        let log = sessionDirectory.appendingPathComponent("startup.log")
+        FileManager.default.createFile(atPath: log.path, contents: nil)
+        logHandle = try FileHandle(forWritingTo: log)
+        task.standardOutput = logHandle
+        task.standardError = logHandle
+        try task.run()
+        readyTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in self?.checkReady() }
+        window.center()
+        show()
+    }
+    func show() {
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    func checkReady() {
+        elapsed += 1
+        let urlFile = sessionDirectory.appendingPathComponent("url.txt")
+        if let text = try? String(contentsOf: urlFile, encoding: .utf8),
+           let url = URL(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
+           url.host == "127.0.0.1" {
+            readyTimer?.invalidate(); readyTimer = nil
+            web.load(URLRequest(url: url)); return
+        }
+        // Resume dialogs can legitimately remain open; don't time out a user's choice.
+        if !task.isRunning {
+            readyTimer?.invalidate(); readyTimer = nil
+            let log = (try? String(contentsOf: sessionDirectory.appendingPathComponent("startup.log"), encoding: .utf8)) ?? "No diagnostic output."
+            let alert = NSAlert()
+            alert.messageText = "Could not open SHARP Manual Depth Editor"
+            alert.informativeText = String(log.suffix(3500))
+            alert.runModal()
+        }
+    }
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
+        if url.host == "127.0.0.1" || url.scheme == "about" { decisionHandler(.allow) }
+        else { decisionHandler(.cancel); NSWorkspace.shared.open(url) }
+    }
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        let alert = NSAlert()
+        alert.messageText = "SHARP Manual Depth Editor"
+        alert.informativeText = message
+        alert.runModal()
+        completionHandler()
+    }
+    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        let alert = NSAlert()
+        alert.messageText = "SHARP Manual Depth Editor"
+        alert.informativeText = message
+        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Cancel")
+        completionHandler(alert.runModal() == .alertFirstButtonReturn)
+    }
+    func stop() {
+        readyTimer?.invalidate(); readyTimer = nil
+        if task.isRunning { task.terminate() }
+        try? logHandle?.close()
+    }
+    deinit { stop() }
+}
+
+extension AppDelegate {
+    @objc func showSharpDepthEditor() {
+        guard convertButton.isEnabled else {
+            statusLabel.stringValue = "Wait for the current conversion to finish before editing depth."
+            return
+        }
+        if let editor = sharpDepthEditor, editor.task.isRunning { editor.show(); return }
+        sharpDepthEditor?.stop(); sharpDepthEditor = nil
+        if selectedPhoto == nil { choosePhoto() }
+        guard let photo = selectedPhoto else { return }
+        do { sharpDepthEditor = try SharpDepthEditorController(photo: photo) }
+        catch {
+            let alert = NSAlert()
+            alert.messageText = "Could not start SHARP Manual Depth Editor"
+            alert.informativeText = error.localizedDescription
+            alert.runModal()
+        }
+    }
+    @objc func closeSharpDepthEditorSession() {
+        guard let editor = sharpDepthEditor else { return }
+        let alert = NSAlert()
+        alert.messageText = "Close the editor session?"
+        alert.informativeText = "Any running preview will stop. Save your current selection changes before closing; saved changes can be resumed later."
+        alert.addButton(withTitle: "Close Session")
+        alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        editor.stop(); editor.window.close(); sharpDepthEditor = nil
+    }
+    @objc func newSharpDepthEditorSession() {
+        if let editor = sharpDepthEditor, editor.task.isRunning {
+            let alert = NSAlert()
+            alert.messageText = "Start a different editor session?"
+            alert.informativeText = "This stops the current editor and any preview it is rendering. Saved changes remain available when you select that photograph again."
+            alert.addButton(withTitle: "Start New Session")
+            alert.addButton(withTitle: "Cancel")
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+            editor.stop(); editor.window.close(); sharpDepthEditor = nil
+        }
+        showSharpDepthEditor()
+    }
+}

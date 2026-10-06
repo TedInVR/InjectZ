@@ -9,7 +9,7 @@ RENDER_SCRIPT=INJECTZ_DIR/"injectz_sharp_render.py"
 SHARP_CHECKPOINT=INJECTZ_DIR/"Models"/"SHARP"/"sharp_2572gikvuh.pt"
 CACHE_DIR=INJECTZ_DIR/"cache"/"sharp"
 TORCH_EXTENSIONS_DIR=INJECTZ_DIR/"Runtime"/"torch_extensions"
-PRESETS={"low":0.010,"medium":0.020,"strong":0.040,"very-strong":0.060}
+PRESETS={"low":0.010,"medium":0.020,"strong":0.040,"very-strong":0.060,"extra-strong":0.080,"maximum":0.100,"extreme":0.120}
 
 def die(s): raise SystemExit("InjectZ error: "+s)
 

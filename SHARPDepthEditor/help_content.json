@@ -1,0 +1,210 @@
+{
+  "controls": {
+    "tool": [
+      "Direct tool",
+      "Choose how to change the selected area. Automatic tools help create the first selection. Direct brushes and rectangles make precise corrections to the existing highlight. The question mark explains the tool currently selected."
+    ],
+    "radius": [
+      "Brush radius",
+      "Controls the circle painted by an Include or Exclude brush. Radius 5 means about 10 selection-image pixels across. Tap [ to make it smaller or ] to make it larger. The circle follows zoom; it shows what will be painted."
+    ],
+    "zoom": [
+      "Zoom",
+      "Fit shows the whole image. Larger values enlarge it for precise work, up to 32×. Point at the desired area, hold Z and press + or −; Z+0 returns to Fit. Hold Space and drag to move your view without painting."
+    ],
+    "displayMode": [
+      "Selection display",
+      "Bright overlay colors selected pixels. Striped overlay adds a pattern to make small patches easier to see. Mask only shows selected areas in white and unselected areas in black. This changes visibility, not the selection or output."
+    ],
+    "overlayColor": [
+      "Highlight color",
+      "Choose green, magenta or amber so the selection stands out against your photograph. This display color does not change the finished image."
+    ],
+    "overlayStrength": [
+      "Visibility",
+      "Controls how strongly the selection highlight covers the photo. Increase it to find tiny selected patches; decrease it to see image details underneath. It does not change depth."
+    ],
+    "pulse": [
+      "Gentle pulse",
+      "Slowly varies the selection highlight so small patches attract your attention. Turn it off for a steady highlight. It does not change selected pixels."
+    ],
+    "imageView": [
+      "Image view",
+      "Photo shows the source. Original depth shows the unedited SHARP splats as a grayscale depth view. Adjusted depth includes saved enabled changes. Photo + adjusted depth overlays depth on the photo. White means nearer and dark means farther or uncovered. Click Update Depth Views after changing saved changes."
+    ],
+    "sizeSlider": [
+      "Shrink or expand selection",
+      "Negative values shrink all selected patches; positive values expand them. Start at 0. Try −4 or −5 to leave space near a foreground edge. Values use the smaller selection image’s pixels, not screen pixels or full-resolution pixels. Each value is measured from the current un-resized mask; it is not added repeatedly."
+    ],
+    "sizeNumber": [
+      "Selection size in pixels",
+      "Enter the same shrink/expand value as the slider, from −20 to +20. Negative shrinks; positive expands. Reset to 0 restores the un-resized selection. Save Changes afterward to include this adjustment in the render."
+    ],
+    "editName": [
+      "Change name",
+      "Give this selected area a useful name, such as Sky or Right sleeve. Names help identify saved changes and do not affect depth."
+    ],
+    "editRole": [
+      "Change type",
+      "Sky/background repair is for a background you want farther away; it uses a uniform change and can reconstruct exposed background. Object depth adjustment changes existing splats and supports gradients or rounded shaping. These are different operations; use Object for shaped foreground corrections."
+    ],
+    "amount": [
+      "Depth adjustment",
+      "Positive values move selected splats nearer; negative values move them farther away. Start gently, such as −0.15 for sky or +0.15 for an object. This is not a distance in feet or meters and is separate from camera spacing. The change preserves the existing contours, with optional shaping. Range: −0.9 to +2. Save Changes before previewing."
+    ],
+    "shapeMode": [
+      "Depth shape",
+      "Uniform shift applies the full adjustment throughout the selection. Directional gradient smoothly rises from zero at the guide’s start to the full amount at its end. Rounded adjustment is strongest at the guide’s start and fades to zero at the guide’s radius. Click Draw Shape Guide and drag to position it. Sky repair uses Uniform shift."
+    ],
+    "feather": [
+      "Edge feather",
+      "Fades the depth change inward from the selection boundary. 0 means no feather. A larger width makes a smoother transition back into the original model. It does not expand the mask or blur the whole photograph. Width is measured in selection-image pixels."
+    ],
+    "baseline": [
+      "Camera spacing",
+      "Sets separation between the two rendered viewpoints, like the SHARP depth strength in the main app. Default is 0.060. Larger values increase visible parallax and may reveal missing geometry or artifacts. This is independent of each saved change’s Depth adjustment. Range: 0.001 to 10."
+    ],
+    "repair": [
+      "Repair exposed sky",
+      "Uses LaMa to reconstruct a shared background and places it behind the scene. Requires exactly one enabled negative Sky/background repair change; object changes may also be enabled. The first use may download repair weights. The same reconstructed background is used for both eyes. It makes a guess, not a guaranteed recovery of hidden detail, and is intended for sky/background rather than faces or lettering."
+    ],
+    "mergeMode": [
+      "Merge method",
+      "Keep newest selection is for several revisions of the same area: it retains the newest mask, including its exclusions. Combine selected areas unions the masks and can bring back pixels excluded in a later revision. Both keep the newest change’s amount and shape; amounts are not added together. Check Include in merge on at least two changes, then Merge Checked Changes."
+    ]
+  },
+  "actions": {
+    "findSelection()": [
+      "Find Selection",
+      "First draw an Automatic selection box and add include/exclude samples if needed. This button calculates an automatic mask. It can reconsider areas throughout the box, but direct brush and rectangle corrections are reapplied afterward. After direct painting, you do not need to click this again."
+    ],
+    "undoPaint()": [
+      "Undo",
+      "Reverses the most recent direct brush stroke or direct rectangle. Command-Z also works. It does not undo automatic sample dots, saved-change deletion or all other actions."
+    ],
+    "redoPaint()": [
+      "Redo",
+      "Restores the last undone direct brush stroke or rectangle. Command-Shift-Z also works. A new direct stroke clears the redo history."
+    ],
+    "depthViews()": [
+      "Update Depth Views",
+      "Builds the editor’s SHARP model on first use, then projects its actual splats as original and adjusted depth views. It does not run another depth estimator or LaMa inpainting. Save Changes first. Both views share the same grayscale scale so you can compare them."
+    ],
+    "nudgeSelection(-1)": [
+      "Shrink by one pixel",
+      "Decreases the selection-size value by 1. It trims all disconnected selected patches at once. Save Changes before previewing."
+    ],
+    "nudgeSelection(1)": [
+      "Expand by one pixel",
+      "Increases the selection-size value by 1. It expands all disconnected selected patches at once. Save Changes before previewing."
+    ],
+    "setSelectionSize(0)": [
+      "Reset selection size",
+      "Returns shrink/expand to 0 and restores the un-resized selection. Direct brush and rectangle corrections remain."
+    ],
+    "clearPaint()": [
+      "Clear Direct Edits",
+      "Removes all direct brush and rectangle corrections after confirmation. The automatic selection remains. Use this only if you want to start the manual refinement again."
+    ],
+    "addRegion()": [
+      "Save this change",
+      "Save As New Change adds the current mask, name, amount, type and shape to Saved changes. Once revising an existing change, Save Changes updates that same change. Brush strokes are not automatically committed to the saved mask: click Save Changes before a preview or final render."
+    ],
+    "newSelection()": [
+      "New Separate Change",
+      "Starts a fresh independent selection and removes the current highlight and sample dots from the workspace. Existing saved changes remain on the right. Save the current change first if you want to keep it. Use this when changing a different part of the image."
+    ],
+    "document.getElementById('tool').value='shape-guide';updateBrushCursor()": [
+      "Draw Shape Guide",
+      "Choose Directional gradient or Rounded adjustment first. For a gradient, drag from zero adjustment to full adjustment. For rounded shaping, drag from the strongest center to the zero-strength radius. The guide controls how the entered amount varies inside the selected area."
+    ],
+    "removeLastSaved()": [
+      "Remove Last Saved Change",
+      "Deletes the last saved change after confirmation. It does not undo a brush stroke. There is no saved-change deletion redo; use Apply in next render to compare without deleting."
+    ],
+    "clearSaved()": [
+      "Clear All Saved Changes",
+      "Deletes every saved change after confirmation. Your current working selection stays available. This cannot be undone with the brush Undo button."
+    ],
+    "renderPair(true)": [
+      "Preview Stereo Pair",
+      "Renders your enabled saved changes and displays the latest Parallel stereo preview below the controls. It does not save another output beside the original. The session keeps only the latest preview. Save Changes first."
+    ],
+    "renderPair(false)": [
+      "Render Stereo Pair",
+      "Creates a final Parallel PNG beside your original photo. Existing files are not overwritten; a number is added if needed. Use Preview Stereo Pair for repeated tests and render when satisfied. The editor currently saves Parallel, even if other formats are checked in the main app."
+    ],
+    "mergeEdits()": [
+      "Merge Checked Changes",
+      "Check Include in merge on at least two saved changes and choose a merge method. The selected changes become one, using the newest amount and shape. Merge is not an addition of their depth amounts. Save the working selection before merging."
+    ]
+  },
+  "saved": {
+    "apply": [
+      "Apply in next render",
+      "Enables or disables this saved change without deleting it. Uncheck it to compare your result with and without this change. A disabled change is skipped by previews and final renders."
+    ],
+    "name": [
+      "Saved change name",
+      "Rename this saved change for reference. Changing this field updates the name immediately; it does not change the selected pixels."
+    ],
+    "amount": [
+      "Saved depth adjustment",
+      "Changes this saved change’s amount immediately. Positive is nearer; negative is farther. Shape and selection stay the same. Preview again to inspect the result."
+    ],
+    "revise": [
+      "Revise This",
+      "Loads this saved mask, name, amount and shape for refinement. After changing the mask or main controls, click Save Changes to update this same saved change. It does not create a second change unless you deliberately start a new one."
+    ],
+    "use": [
+      "Use Current Selection",
+      "Assigns your current working mask to this saved change for revision. It loads that saved change’s name, amount and shape and marks the mask as unsaved. Click Save Changes to commit it. Use Revise This if you want to load the saved mask instead."
+    ],
+    "delete": [
+      "Delete saved change",
+      "Deletes this saved change after confirmation. This is separate from brush Undo/Redo. Disable Apply in next render if you only want to compare without losing it."
+    ],
+    "merge": [
+      "Include in merge",
+      "Marks this saved change for Merge Checked Changes. It does not enable or disable the change’s effect. Apply in next render controls whether it affects the output."
+    ]
+  },
+  "tools": {
+    "exclude-brush": [
+      "Exclude brush",
+      "Drag to remove selected pixels beneath the brush circle. It changes only your stroke and overrides automatic selection in that area. Find Selection is not needed afterward. Use brackets to adjust radius and Undo to reverse a stroke."
+    ],
+    "include-brush": [
+      "Include brush",
+      "Drag to add pixels beneath the brush circle to the selection. It changes only your stroke, even if the automatic selection disagrees. You need an existing selection first. Find Selection is not needed afterward."
+    ],
+    "exclude-rectangle": [
+      "Exclude rectangle",
+      "Drag a rectangle to remove all selected pixels inside it. Useful for protecting an entire text block or foreground object. It does not recognize individual letters. This correction stays locked when Find Selection is recalculated."
+    ],
+    "include-rectangle": [
+      "Include rectangle",
+      "Drag a rectangle to add every pixel inside it to the selection. It is a direct geometric edit, not automatic object recognition. Undo reverses the last direct rectangle."
+    ],
+    "shape-guide": [
+      "Draw Shape Guide",
+      "Choose Directional gradient or Rounded adjustment first. For a gradient, drag from zero adjustment to full adjustment. For rounded shaping, drag from the strongest center to the zero-strength radius. The guide controls how the entered amount varies inside the selected area."
+    ],
+    "auto-box": [
+      "Automatic selection box",
+      "Drag a box around the area the automatic selector should examine. Drawing the box alone does not create a mask. Add samples as needed and click Find Selection. A box is not a direct include rectangle; it guides the automatic calculation."
+    ],
+    "seed-bg": [
+      "Automatic exclude sample",
+      "Click to place a red sample on something the automatic selector should exclude, such as a person or propeller. Then click Find Selection to recalculate. Samples are guidance, not hard pixel locks; direct Exclude brush or rectangle corrections provide locks. Point at a sample and press Delete to remove it."
+    ],
+    "seed-fg": [
+      "Automatic include sample",
+      "Click to place a green sample on an area the automatic selector should include, such as the sky. Click Find Selection afterward. Samples guide the calculation but do not guarantee every nearby pixel is included. Use direct Include brush for an exact correction."
+    ]
+  },
+  "background": [
+    "Inspect reconstructed background",
+    "Opens the single repaired background shared by the two eye views. It becomes available after a repair preview or render. This lets you inspect the guessed hidden areas separately from stereo rendering."
+  ]
+}
