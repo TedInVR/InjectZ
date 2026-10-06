@@ -6,11 +6,13 @@ Final images are saved beside the source photograph and displayed using Finder Q
 
 Inject Z was vibe-coded with ChatGPT. In plain English, I described what I wanted the app to do, and ChatGPT helped write and revise the code. Development and testing are ongoing.
 
-**New to Inject Z?** Read the [User Guide](USER_GUIDE.md) for step-by-step instructions.
+**Current release: [Inject Z 0.3.0](https://github.com/TedInVR/InjectZ/releases/tag/v0.3.0).** Download **InjectZ-0.3.0.zip** from the release’s Assets section.
+
+**New to Inject Z?** Read the [User Guide](Docs/USER_GUIDE.md) for step-by-step instructions, including the SHARP Manual Depth Editor.
 
 ## Conversion engines
 
-- **Apple SHARP:** Gaussian splat reconstruction with adjustable depth and optional softening around depth edges. Includes a correction for distant-sky clipping in the Metal renderer.
+- **Apple SHARP:** Gaussian splat reconstruction with adjustable depth and optional softening around depth edges. Includes a correction for distant-sky clipping in the Metal renderer, custom depth strength, and a Manual Depth Editor for adjusting selected parts of the reconstructed scene.
 - **IW3:** Depth-map-based conversion with a choice of depth models, strengths from 1 to 6, and advanced photo settings with explanations.
 - **Apple Photos Reframe:** Automation of the Reframe feature in the Photos editing tools, using a separate working Photos library.
 
@@ -27,23 +29,56 @@ Inject Z currently converts **photos, not videos**. Upstream IW3 supports video 
 
 Developed and tested on an M2 Max MacBook Pro with 64 GB of memory. Minimum memory requirements have not yet been established.
 
-## Installation: guided setup preview
+## Download and installation
 
-**A guided setup tool is included, but it is still a preview—not a verified one-click release.** Its menu, prerequisite checks, and protection of an existing installation have been tested on the developer's Mac. The complete download, build, and installation sequence still needs testing on a fresh Mac.
+Get the current package from [Releases](https://github.com/TedInVR/InjectZ/releases/latest). Under **Assets**, download **InjectZ-0.3.0.zip** and unzip it. This is a source-based package: setup builds the app on your Mac and downloads dependencies/models separately. It is not a self-contained, notarized app download.
 
-1. On this repository's main page, click **Code → Download ZIP** and unzip the download. Download the whole repository so the setup tool has all its source folders.
-2. Open the folder and double-click **START_HERE.command**. This opens Terminal and a menu of normal Mac dialogs. Keep Terminal open while setup is running. **Note: MacOS may block your initial attempt.** What you'll need to do if this happens, is go to your Mac's System Settings > Privacy & Security > Scroll all the way down to the bottom of that section and find the "Security" heading, and you'll see a message about the START_HERE.command with an "Open" or "Open Anyway" button > Choose "Open Anyway" in the popup > Enter your password or use Touch I.D. verification.  Then continue with set up.
+### Updating an existing installation
+
+1. Finish any conversions and quit Inject Z with **Command-Q**.
+2. Open the unzipped release folder and double-click **UPDATE_EXISTING.command**. Keep Terminal open until it reports success.
+3. Reopen **~/InjectZ/InjectZ.app** and check **About Inject Z** for the new version.
+
+The updater creates a backup and updates the app plus support scripts. It preserves installed Python environments, AI models and saved depth-editor sessions. A certificate-signed installation requires its original signing certificate and private key to remain available. Ad-hoc-signed installations may need permission approval again after rebuilding.
+
+The 0.3.0 update has been tested on the developer’s existing installation. A complete installation on a fresh Mac has not yet been verified.
+
+### First-time guided setup
+
+1. Open the unzipped release folder and double-click **START_HERE.command**. This opens Terminal and normal Mac dialogs. Keep Terminal open while setup runs.
+2. **macOS may block the initial attempt.** For a downloaded command you trust, go to **System Settings → Privacy & Security**, scroll to the Security section, and look for **Open Anyway**. Follow the prompts, using your password or Touch ID if requested, then continue setup.
 3. Choose **1. Check prerequisites**.
-4. If anything is missing, use **2. Get Apple developer tools** and **3. Get Python 3.13 and 3.12**. Finish the official installers, then run the prerequisite check again.
+4. If anything is missing, use **2. Get Apple developer tools** and **3. Get Python 3.13 and 3.12**. Finish the official installers, then check again.
 5. Choose **4. Review engine and model terms** before installing models.
-6. Choose **5. Install a NEW Inject Z**. Select IW3/Reframe support, with optional SHARP research setup if your intended use complies with Apple's model agreement.
-7. After installation, complete the engine-specific steps below and test one photograph through each engine you intend to use.
+6. Choose **5. Install a NEW Inject Z**. Select IW3/Reframe support, with optional SHARP research setup if your intended use complies with Apple’s model agreement.
+7. Complete the engine-specific steps below and test one photograph with each engine you intend to use.
 
-The installation location is **~/InjectZ**: an InjectZ folder inside your home folder. The app is **~/InjectZ/InjectZ.app**. This preview does not install into the main Applications folder.
+Installation is in **~/InjectZ**, inside your home folder. The app is **~/InjectZ/InjectZ.app**; setup does not install it into the main Applications folder.
 
-**An existing ~/InjectZ folder blocks automatic installation.** The preview will not replace your working app or upgrade an existing installation. Do not delete an existing folder merely to get past this check.
+**An existing ~/InjectZ folder blocks first-time setup.** Use UPDATE_EXISTING.command to update a working installation. Do not delete your existing folder to bypass this check.
 
-If macOS blocks the downloaded command, use the normal macOS approval process for a file you trust. Do not disable system security globally.
+### Getting future updates
+
+Choose **Inject Z → Check for Updates…** in the app menu. It checks published GitHub Releases and offers to open the download page when a newer version is available. Download that release’s ZIP, quit Inject Z, and run its **UPDATE_EXISTING.command**.
+
+Version 0.3.0 does not automatically download or install updates. All of the app’s source and support files are included in one release ZIP; there is no need to download them individually.
+
+## SHARP Manual Depth Editor
+
+If SHARP places an object or background at the wrong depth, select the original photograph and click **Manual Depth Editor…** with the SHARP engine selected. The editor can create its own SHARP reconstruction; you do not have to run a regular conversion first. Viewing a regular conversion first can help you decide what needs correction.
+
+The editor includes:
+
+- Automatic selection boxes and include/exclude samples, followed by precise brushes and rectangles.
+- Zoom up to 32×, a visible brush circle, bracket-key brush resizing and Space-drag panning.
+- Named saved changes that can be revised, enabled/disabled or merged.
+- Shrink/expand selection, edge feathering, uniform shifts, directional gradients and rounded depth adjustments.
+- Original and adjusted depth views of the actual SHARP splats.
+- **Preview Stereo Pair**, which avoids accumulating final images beside the original, and **Render Stereo Pair** for saving the result.
+- Optional reconstruction of exposed sky/background areas. This guesses missing content and can still produce artifacts; it is not intended to recreate faces or lettering.
+- Circled **?** buttons beside the controls: hover for **What is this?**, then click for an explanation.
+
+The editor currently previews and saves **Parallel** output, independently of the main app’s multiple-format checkboxes. Save Changes before previewing or rendering so your latest selection is included. See the [User Guide](Docs/USER_GUIDE.md) for the complete workflow and keyboard shortcuts. The main app’s **Help** menu opens its bundled guide.
 
 ### What setup does—and what you still do
 
@@ -97,7 +132,7 @@ Third-party software and AI models retain their own licenses and attribution req
 
 After setup, open **~/InjectZ/MODEL_SETUP.txt** and double-click **~/InjectZ/DOWNLOAD_IW3_MODELS.command**. This opens upstream IW3 with internet access and the same model cache locations used by Inject Z.
 
-Follow the guide to convert a disposable test photograph using the depth model and method you intend to use. Inject Z's initial settings use **DepthPro**, **mlbw_l2_inpaint**, and **light_inpaint_v1**. First use downloads the needed depth, warp, and inpainting models. Review their respective terms before use.
+Follow the guide to convert a disposable test photograph using the depth model and method you intend to use. Inject Z's initial settings use **DepthPro**, **forward_inpaint**, and **light_inpaint_v1**. First use downloads the needed depth, warp, and inpainting models. Review their respective terms before use.
 
 Once that test succeeds, quit upstream IW3 and test Inject Z with matching settings. Repeat model preparation when choosing another model or method: Inject Z currently runs IW3 with Hugging Face offline mode and cannot download missing models itself.
 
@@ -120,21 +155,24 @@ Keep the Terminal error and **~/InjectZ/SETUP_LOG.txt**. A partial installation 
 
 This preview uses developer ad-hoc signing rather than a notarized public release. Permission approval may need to be repeated after rebuilding. Upstream changes can also cause installation incompatibilities. See [Guided setup details](SETUP_PREVIEW.md) for current limitations.
 
-## Current source snapshot: 2026.10.04
+## Current release: 0.3.0
 
-The conversion source was collected from the installed app on October 4, 2026. The installed app still reports bundle version **0.2.2**, which predates several updates; the dated snapshot identifies this source rather than a newly tested binary release.
+Released October 6, 2026, from a source snapshot collected from the working installation that day. The app now reports **0.3.0**, matching the GitHub release tag **v0.3.0**.
 
-Recent changes include the SHARP sky correction, optional depth-edge softening (off by default), IW3 strengths 1–6, photo-specific settings with help and resolved defaults, and window protection using all four image borders. The guided setup preview was added afterward. See the [change history](CHANGELOG.md) and [development log](Docs/DEVELOPMENT_LOG.md).
+This release includes the integrated SHARP Manual Depth Editor, editor help and updated guide, custom SHARP depth strength, current sky/edge corrections, IW3 photo improvements and a Check for Updates menu. The app build and update checking have been confirmed on the developer’s Mac; fresh-machine setup remains unverified.
 
-For technical details, see [developer setup](Docs/SETUP.md), [architecture](Docs/ARCHITECTURE.md), and the [release checklist](Docs/RELEASE_CHECKLIST.md). Some earlier developer setup notes describe the manual process; START_HERE.command and SETUP_PREVIEW.md describe the newer guided preview.
+For technical details, see [developer setup](Docs/SETUP.md), [architecture](Docs/ARCHITECTURE.md), [development log](Docs/DEVELOPMENT_LOG.md), and [release publishing instructions](Docs/PUBLISH_RELEASE.md). Some older documentation describes earlier manual installation methods and predates the depth editor.
 
 ## Source layout
 
 | Folder/file | Contents |
 |---|---|
-| START_HERE.command | Guided setup launcher |
+| START_HERE.command | First-time guided setup launcher |
+| UPDATE_EXISTING.command | Updates an existing installation with backup and rollback |
+| VERSION | Current release version |
 | App | Swift AppKit GUI |
 | SHARP | Prediction wrapper, stereo renderer, optional edge softening |
+| SHARPDepthEditor | Manual editor interface, selection tools, depth adjustments and background repair |
 | IW3 | Photo wrapper, settings/help definitions, PSD writer |
 | Reframe | Photos scripts, library guard, stereo assembly and formats |
 | Assets | App icon and header artwork |
