@@ -10,6 +10,8 @@ Inject Z was vibe-coded with ChatGPT. In plain English, I described what I wante
 
 **New to Inject Z?** Read the [User Guide](Docs/USER_GUIDE.md) for step-by-step instructions, including the SHARP Manual Depth Editor.
 
+For a brief video introducing you to Inject Z, check out YouTube: https://www.youtube.com/watch?v=9XMi_wGZiH8  
+
 ## Conversion engines
 
 - **Apple SHARP:** Gaussian splat reconstruction with adjustable depth and optional softening around depth edges. Includes a correction for distant-sky clipping in the Metal renderer, custom depth strength, and a Manual Depth Editor for adjusting selected parts of the reconstructed scene.
