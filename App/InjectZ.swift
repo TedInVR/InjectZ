@@ -1948,6 +1948,19 @@ final class InjectZAudioAlerts: NSObject {
     private func scan() -> [URL] {
         let fm = FileManager.default
         try? fm.createDirectory(at: folder, withIntermediateDirectories: true, attributes: nil)
+        // Seed bundled melodies once per filename, preserving user choices and deletions.
+        if let bundled = Bundle.main.resourceURL?.appendingPathComponent("AudioAlerts", isDirectory: true),
+           let tracks = try? fm.contentsOfDirectory(at: bundled, includingPropertiesForKeys: nil) {
+            var installed = Set(defaults.stringArray(forKey: "InjectZAudioBundledInstalled") ?? [])
+            for track in tracks where track.pathExtension.lowercased() == "m4a" {
+                let name = track.lastPathComponent
+                guard !installed.contains(name) else { continue }
+                let target = folder.appendingPathComponent(name)
+                if fm.fileExists(atPath: target.path) { installed.insert(name) }
+                else if (try? fm.copyItem(at: track, to: target)) != nil { installed.insert(name) }
+            }
+            defaults.set(Array(installed), forKey: "InjectZAudioBundledInstalled")
+        }
         return ((try? fm.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? [])
             .filter { ["m4a", "mp3", "wav", "aiff", "aif", "caf"].contains($0.pathExtension.lowercased()) }
             .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }

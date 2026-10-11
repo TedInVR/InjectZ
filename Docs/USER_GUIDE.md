@@ -205,7 +205,7 @@ Repeated conversions add a number when necessary. A run with several formats ope
 
 Choose **Inject Z → Audio Alerts…** to import your own recordings, preview them, select favorites, or turn alerts off. After a successful regular SHARP, IW3, or Reframe conversion, one enabled recording plays. The shuffled cycle avoids repeating recordings until all enabled recordings have played, and remembers its place across launches. Multiple output formats produce one alert per conversion.
 
-Recordings are copied to `~/Library/Application Support/InjectZ/AudioAlerts`. The public source update does not bundle music; import your own audio with **Add Audio Files…**. Editor previews and manual Show Result do not play completion alerts. See [Audio alerts](AUDIO_ALERTS.md).
+Recordings are copied to `~/Library/Application Support/InjectZ/AudioAlerts`. The app includes 28 completion melodies, copied into your audio folder automatically on first use. You can also import your own audio with **Add Audio Files…**. Editor previews and manual Show Result do not play completion alerts. See [Audio alerts](AUDIO_ALERTS.md).
 
 ## Common problems
 

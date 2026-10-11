@@ -15,6 +15,7 @@ cp "$repo/IW3/create_layered_psd.py" "$stage/Development/"
 cp "$repo/IW3/IW3Settings.json" "$repo/IW3/IW3SettingHelp.json" "$stage/"
 cp "$repo/Assets/InjectZ.icns" "$repo/Assets/InjectZHeader.png" "$app/Contents/Resources/"
 cp "$repo/Assets/InjectZ_User_Guide.html" "$app/Contents/Resources/"
+/usr/bin/ditto "$repo/Assets/AudioAlerts" "$app/Contents/Resources/AudioAlerts"
 /usr/bin/ditto "$repo/SHARPDepthEditor" "$stage/Development/SHARPDepthEditor"
 /usr/bin/swiftc -O "$stage/InjectZ.swift" -o "$app/Contents/MacOS/InjectZ" -framework Cocoa -framework UniformTypeIdentifiers -framework ApplicationServices -framework WebKit -framework Quartz
 /usr/bin/swiftc -O "$stage/Development/Reframe/LibraryGuard.swift" -o "$stage/Development/Reframe/LibraryGuard" -framework Cocoa

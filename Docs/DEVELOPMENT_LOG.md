@@ -522,3 +522,8 @@ Added SHARP Manual Depth Editor title; temporary stereo preview; Space-drag pann
 
 - Installed verification: Ted confirmed on October 11 that the installed feature works. Initial installer rejected an ad-hoc app; its existing InjectZ Development identity was present and used for signing after correcting the certificate lookup. Public source does not embed Ted’s signing identity.
 - Repository sync also includes the previously installed deferred photo-open launch fix and direct full-width Quick Look preview. Build source now links Quartz. No new numbered release or downloadable binary is claimed by this commit.
+
+## 2026-10-11 — Bundled completion melodies
+- Ted explicitly authorized publishing all 28 supplied M4A melodies and stated that he holds the necessary rights through his paid Suno subscription.
+- Assets/AudioAlerts contains the melodies. BUILD_SOURCE copies them into app resources before signing. The audio manager copies new bundled filenames into the user audio folder without overwriting existing files; a persistent per-name registry respects later deletion.
+- Global disable, favorite choices, custom imports and shuffle history are preserved. Shell syntax and all recording decodes verified; bundled seeding is newly added and has not yet been run on macOS. Existing audio playback was confirmed by Ted.

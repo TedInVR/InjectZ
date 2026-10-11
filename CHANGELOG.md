@@ -2,6 +2,8 @@
 
 ## Unreleased — 2026-10-11
 
+- Includes 28 completion melodies with automatic installation into new builds.
+
 - Completion audio alerts with imported recordings, favorite selection, previews, and a persistent shuffled cycle.
 - Deferred photo loading when launched by dropping a photo onto the app.
 - Direct full-width Quick Look output preview.
