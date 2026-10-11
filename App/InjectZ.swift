@@ -1,3 +1,4 @@
+import Quartz
 import Cocoa
 import UniformTypeIdentifiers
 import ApplicationServices
@@ -34,6 +35,11 @@ final class DropView: NSView {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var outputPreviewController: InjectZOutputPreviewController?
+    // INJECTZ_DEFER_OPEN_UNTIL_READY_20261007
+    private var mainUIReady = false
+    private var pendingLaunchPhoto: URL?
+
     var window: NSWindow!
     var sharpDepthEditor: SharpDepthEditorController?
     var sharpDepthEditorButton: NSButton!
@@ -117,6 +123,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         buildMainMenu()
         buildUI()
+        mainUIReady = true
+        if let photo = pendingLaunchPhoto {
+            pendingLaunchPhoto = nil
+            selectPhoto(photo)
+        }
     }
 
     @objc func checkForInjectZUpdates(_ sender: Any?) {
@@ -217,6 +228,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForInjectZUpdates(_:)), keyEquivalent: "")
         updateItem.target = self
         appMenu.addItem(updateItem)
+        let audioItem = NSMenuItem(title: "Audio Alerts…", action: #selector(InjectZAudioAlerts.showSettings), keyEquivalent: "")
+        audioItem.target = InjectZAudioAlerts.shared
+        appMenu.addItem(audioItem)
         appMenu.addItem(NSMenuItem.separator())
 
         let quitItem = NSMenuItem(
@@ -254,7 +268,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        if let u = urls.first { selectPhoto(u) }
+        guard let photo = urls.first else { return }
+        selectPhoto(photo)
+        if mainUIReady {
+            window?.makeKeyAndOrderFront(nil)
+            NSRunningApplication.current.activate(options: [.activateAllWindows])
+        }
     }
 
     func buildUI() {
@@ -616,6 +635,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func selectPhoto(_ u: URL) {
+        // Launch Services may deliver the dropped photo before buildUI finishes.
+        // Queue it without dereferencing any implicitly unwrapped UI controls.
+        guard mainUIReady, photoField != nil, statusLabel != nil, revealButton != nil else {
+            pendingLaunchPhoto = u
+            return
+        }
         selectedPhoto = u
         photoField.stringValue = u.lastPathComponent
         statusLabel.stringValue = "Ready"
@@ -843,6 +868,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         self.revealButton.isEnabled = true
                         self.statusLabel.stringValue = depthMapOnly ? "Depth map complete — \(result.lastPathComponent)\(completionNote)" : "Created \(formats.count) format(s) — \(result.lastPathComponent)"
                         self.revealOutput(result, openImage: true)
+                        InjectZAudioAlerts.shared.playCompletion()
                     } else {
                         self.statusLabel.stringValue = "Engine finished, but no output image was found."
                         NSRunningApplication.current.activate(options: [])
@@ -1616,6 +1642,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         statusLabel.stringValue += " Working Photos album retained; remove it manually if desired."
                     }
                     revealOutput(lastOutput!, openImage: true)
+                    InjectZAudioAlerts.shared.playCompletion()
                 } else {
                     statusLabel.stringValue = "Reframe assembly exited successfully, but its output was not verified."
                 }
@@ -1670,35 +1697,82 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func revealOutput(_ url: URL, openImage: Bool = false) {
-        // Finder selection can happen behind Photos if invoked immediately
-        // after Photos' export. Start Finder's own reveal command once Photos
-        // and the exporter have settled, then explicitly activate Finder.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            let reveal = Process()
-            reveal.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-            reveal.arguments = ["-R", url.path]
-            do { try reveal.run() }
-            catch { self.statusLabel.stringValue = "Image saved; Finder reveal failed: \(error.localizedDescription)"; return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                NSWorkspace.shared.activateFileViewerSelecting([url])
-                _ = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder")
-                    .first?.activate(options: [.activateAllWindows])
-                if openImage {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                        // Finder's Space key presents Quick Look without opening Preview.
-                        // Accessibility permission already required by Reframe permits the key event.
-                        guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder",
-                              let down = CGEvent(keyboardEventSource: nil, virtualKey: 49, keyDown: true),
-                              let up = CGEvent(keyboardEventSource: nil, virtualKey: 49, keyDown: false) else {
-                            self.statusLabel.stringValue = "Image saved and selected in Finder; press Space for Quick Look."
-                            return
-                        }
-                        down.post(tap: .cghidEventTap)
-                        up.post(tap: .cghidEventTap)
+            guard FileManager.default.fileExists(atPath: url.path) else {
+                self.statusLabel.stringValue = "Output image could not be found: \(url.lastPathComponent)"
+                NSRunningApplication.current.activate(options: [])
+                return
+            }
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+            if openImage {
+                // Quick Look is presented directly. No Finder focus test, simulated
+                // Space key, or extra Accessibility/Automation approval is needed.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    if self.outputPreviewController == nil {
+                        self.outputPreviewController = InjectZOutputPreviewController()
+                    }
+                    if self.outputPreviewController?.showImage(url) != true {
+                        self.statusLabel.stringValue = "Image saved and selected in Finder; press Space to view it."
                     }
                 }
+            } else {
+                _ = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder")
+                    .first?.activate(options: [.activateAllWindows])
             }
         }
+    }
+}
+
+// INJECTZ_DIRECT_QUICK_LOOK_20261007
+final class InjectZOutputPreviewWindow: NSWindow {
+    override func keyDown(with event: NSEvent) {
+        if event.keyCode == 49 || event.keyCode == 53 {
+            performClose(nil)
+        } else {
+            super.keyDown(with: event)
+        }
+    }
+}
+
+final class InjectZOutputPreviewController: NSWindowController {
+    private var preview: QLPreviewView?
+
+    init() {
+        let visible = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1200, height: 800)
+        let frame = NSRect(x: 0, y: 0, width: visible.width, height: visible.height)
+        let panel = InjectZOutputPreviewWindow(contentRect: frame,
+            styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        panel.isReleasedWhenClosed = false
+        panel.minSize = NSSize(width: 400, height: 300)
+        panel.collectionBehavior = [.fullScreenPrimary]
+        panel.center()
+        super.init(window: panel)
+        if let content = panel.contentView, let view = QLPreviewView(frame: content.bounds, style: .normal) {
+            view.autoresizingMask = [.width, .height]
+            view.shouldCloseWithWindow = false
+            content.addSubview(view)
+            preview = view
+        }
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func showImage(_ url: URL) -> Bool {
+        guard let preview = preview, let window = window else { return false }
+        // INJECTZ_FULL_WIDTH_PREVIEW_20261007
+        // Use the outer frame so the title bar also stays within the screen.
+        let screen = window.screen ?? NSScreen.main
+        if let visible = screen?.visibleFrame {
+            window.setFrame(visible, display: true)
+        }
+        window.title = url.lastPathComponent
+        preview.previewItem = url as NSURL
+        preview.refreshPreviewItem()
+        NSRunningApplication.current.activate(options: [.activateAllWindows])
+        showWindow(nil)
+        window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
+        return true
     }
 }
 
@@ -1849,5 +1923,130 @@ extension AppDelegate {
             editor.stop(); editor.window.close(); sharpDepthEditor = nil
         }
         showSharpDepthEditor()
+    }
+}
+
+
+// Completion audio preferences and persistent shuffle cycle.
+final class InjectZAudioAlerts: NSObject {
+    static let shared = InjectZAudioAlerts()
+    private let defaults = UserDefaults.standard
+    private var sound: NSSound?
+    private var panel: NSPanel?
+    private var list: NSStackView?
+    private var toggle: NSButton?
+    private var message: NSTextField?
+    private var files: [URL] = []
+    private let enabledKey = "InjectZAudioEnabled"
+    private let excludedKey = "InjectZAudioExcluded"
+    private let queueKey = "InjectZAudioQueue"
+    private let lastKey = "InjectZAudioLast"
+    private var folder: URL {
+        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/InjectZ/AudioAlerts", isDirectory: true)
+    }
+    private var enabled: Bool { defaults.object(forKey: enabledKey) == nil || defaults.bool(forKey: enabledKey) }
+    private func scan() -> [URL] {
+        let fm = FileManager.default
+        try? fm.createDirectory(at: folder, withIntermediateDirectories: true, attributes: nil)
+        return ((try? fm.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? [])
+            .filter { ["m4a", "mp3", "wav", "aiff", "aif", "caf"].contains($0.pathExtension.lowercased()) }
+            .sorted { $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending }
+    }
+    func playCompletion() {
+        guard enabled else { return }
+        let excluded = Set(defaults.stringArray(forKey: excludedKey) ?? [])
+        let available = scan().filter { !excluded.contains($0.lastPathComponent) }
+        let names = available.map { $0.lastPathComponent }
+        guard !names.isEmpty else { return }
+        let known = defaults.stringArray(forKey: "InjectZAudioKnown") ?? []
+        var queue = (defaults.stringArray(forKey: queueKey) ?? []).filter { names.contains($0) }
+        queue += names.filter { !known.contains($0) && !queue.contains($0) }.shuffled()
+        if queue.isEmpty {
+            queue = names.shuffled()
+            if queue.count > 1, queue.first == defaults.string(forKey: lastKey) { queue.swapAt(0, 1) }
+        }
+        defaults.set(names, forKey: "InjectZAudioKnown")
+        while !queue.isEmpty {
+            let name = queue.removeFirst()
+            defaults.set(queue, forKey: queueKey)
+            guard let url = available.first(where: { $0.lastPathComponent == name }),
+                  let next = NSSound(contentsOf: url, byReference: false) else { continue }
+            sound?.stop(); sound = next
+            if next.play() { defaults.set(name, forKey: lastKey); break }
+        }
+    }
+    @objc func showSettings() {
+        if let panel = panel { reload(); panel.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true); return }
+        let p = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 620, height: 520), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        p.title = "Audio Alerts"; p.isReleasedWhenClosed = false; p.center()
+        guard let c = p.contentView else { return }
+        let t = NSButton(checkboxWithTitle: "Play an audio alert when a conversion finishes", target: self, action: #selector(enabledChanged(_:)))
+        t.frame = NSRect(x: 20, y: 470, width: 580, height: 28); c.addSubview(t); toggle = t
+        let hint = NSTextField(labelWithString: "Checked melodies play in shuffled order, once each per round.")
+        hint.frame = NSRect(x: 20, y: 438, width: 580, height: 24); c.addSubview(hint)
+        let scroll = NSScrollView(frame: NSRect(x: 20, y: 105, width: 580, height: 325))
+        scroll.hasVerticalScroller = true; scroll.borderType = .bezelBorder
+        let stack = NSStackView(); stack.orientation = .vertical; stack.alignment = .leading; stack.spacing = 5
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        let document = NSView(); document.addSubview(stack); scroll.documentView = document
+        NSLayoutConstraint.activate([stack.topAnchor.constraint(equalTo: document.topAnchor, constant: 8), stack.leadingAnchor.constraint(equalTo: document.leadingAnchor, constant: 8), stack.trailingAnchor.constraint(equalTo: document.trailingAnchor, constant: -8), stack.bottomAnchor.constraint(equalTo: document.bottomAnchor, constant: -8), document.widthAnchor.constraint(equalTo: scroll.contentView.widthAnchor)])
+        document.translatesAutoresizingMaskIntoConstraints = false
+        c.addSubview(scroll); list = stack
+        let add = NSButton(title: "Add Audio Files…", target: self, action: #selector(addFiles))
+        add.frame = NSRect(x: 20, y: 62, width: 170, height: 32); c.addSubview(add)
+        let stop = NSButton(title: "Stop Audio", target: self, action: #selector(stopAudio))
+        stop.frame = NSRect(x: 205, y: 62, width: 130, height: 32); c.addSubview(stop)
+        let all = NSButton(title: "Select All", target: self, action: #selector(selectAll))
+        all.frame = NSRect(x: 350, y: 62, width: 115, height: 32); c.addSubview(all)
+        let none = NSButton(title: "Select None", target: self, action: #selector(selectNone))
+        none.frame = NSRect(x: 475, y: 62, width: 125, height: 32); c.addSubview(none)
+        let m = NSTextField(labelWithString: ""); m.frame = NSRect(x: 20, y: 20, width: 580, height: 30); m.maximumNumberOfLines = 2
+        c.addSubview(m); message = m; panel = p; reload(); p.makeKeyAndOrderFront(nil)
+    }
+    private func reload() {
+        files = scan(); toggle?.state = enabled ? .on : .off
+        guard let list = list else { return }
+        for v in list.arrangedSubviews { list.removeArrangedSubview(v); v.removeFromSuperview() }
+        let excluded = Set(defaults.stringArray(forKey: excludedKey) ?? [])
+        for (index, url) in files.enumerated() {
+            let row = NSStackView(); row.orientation = .horizontal; row.spacing = 10
+            let check = NSButton(checkboxWithTitle: url.deletingPathExtension().lastPathComponent, target: self, action: #selector(selectionChanged(_:)))
+            check.tag = index; check.state = excluded.contains(url.lastPathComponent) ? .off : .on
+            check.lineBreakMode = .byTruncatingMiddle; check.widthAnchor.constraint(equalToConstant: 445).isActive = true
+            let preview = NSButton(title: "Preview", target: self, action: #selector(preview(_:))); preview.tag = index
+            row.addArrangedSubview(check); row.addArrangedSubview(preview); list.addArrangedSubview(row)
+        }
+        message?.stringValue = files.isEmpty ? "No audio files yet. Click Add Audio Files to choose your melodies." : "\(files.count - files.filter { excluded.contains($0.lastPathComponent) }.count) of \(files.count) melodies enabled. Changes are saved automatically."
+    }
+    @objc private func enabledChanged(_ sender: NSButton) { defaults.set(sender.state == .on, forKey: enabledKey); if sender.state == .off { stopAudio() } }
+    @objc private func selectionChanged(_ sender: NSButton) {
+        guard files.indices.contains(sender.tag) else { return }
+        var excluded = Set(defaults.stringArray(forKey: excludedKey) ?? [])
+        let name = files[sender.tag].lastPathComponent
+        if sender.state == .on { excluded.remove(name) } else { excluded.insert(name) }
+        defaults.set(Array(excluded), forKey: excludedKey); reload()
+    }
+    @objc private func preview(_ sender: NSButton) {
+        guard files.indices.contains(sender.tag) else { return }
+        stopAudio(); sound = NSSound(contentsOf: files[sender.tag], byReference: false)
+        if sound?.play() != true { message?.stringValue = "This recording could not be played." }
+    }
+    @objc private func stopAudio() { sound?.stop(); sound = nil }
+    @objc private func selectAll() { defaults.set([String](), forKey: excludedKey); reload() }
+    @objc private func selectNone() { defaults.set(files.map { $0.lastPathComponent }, forKey: excludedKey); reload() }
+    @objc private func addFiles() {
+        let chooser = NSOpenPanel(); chooser.allowsMultipleSelection = true; chooser.canChooseDirectories = false
+        chooser.allowedContentTypes = [.audio]; chooser.message = "Choose melodies to add to your completion alerts."
+        guard chooser.runModal() == .OK else { return }
+        var failures = 0
+        for url in chooser.urls {
+            guard NSSound(contentsOf: url, byReference: false) != nil else { failures += 1; continue }
+            var dest = folder.appendingPathComponent(url.lastPathComponent); var n = 2
+            while FileManager.default.fileExists(atPath: dest.path) {
+                dest = folder.appendingPathComponent("\(url.deletingPathExtension().lastPathComponent) (\(n)).\(url.pathExtension)"); n += 1
+            }
+            do { try FileManager.default.copyItem(at: url, to: dest) } catch { failures += 1 }
+        }
+        reload(); if failures > 0 { message?.stringValue = "\(failures) file(s) could not be added. Other files were imported." }
     }
 }

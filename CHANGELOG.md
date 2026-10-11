@@ -1,5 +1,12 @@
 # Change history
 
+## Unreleased — 2026-10-11
+
+- Completion audio alerts with imported recordings, favorite selection, previews, and a persistent shuffled cycle.
+- Deferred photo loading when launched by dropping a photo onto the app.
+- Direct full-width Quick Look output preview.
+
+
 ## Source snapshot 2026.10.04
 
 - Captured the currently installed Swift GUI, helpers, icon/header assets and dependency version inventories.
@@ -15,3 +22,4 @@
 ## Source snapshot 2026.09.29
 
 - Initial source upload for collaboration; includes multi-output GUI and Reframe size-normalization recovery.
+

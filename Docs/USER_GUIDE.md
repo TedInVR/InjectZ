@@ -201,6 +201,12 @@ Completed display images are saved in the same folder as your source photograph.
 
 Repeated conversions add a number when necessary. A run with several formats opens one result automatically; the other outputs are beside it in Finder. Internal working files and logs may remain under the InjectZ installation folder.
 
+## Completion audio alerts
+
+Choose **Inject Z → Audio Alerts…** to import your own recordings, preview them, select favorites, or turn alerts off. After a successful regular SHARP, IW3, or Reframe conversion, one enabled recording plays. The shuffled cycle avoids repeating recordings until all enabled recordings have played, and remembers its place across launches. Multiple output formats produce one alert per conversion.
+
+Recordings are copied to `~/Library/Application Support/InjectZ/AudioAlerts`. The public source update does not bundle music; import your own audio with **Add Audio Files…**. Editor previews and manual Show Result do not play completion alerts. See [Audio alerts](AUDIO_ALERTS.md).
+
 ## Common problems
 
 | Problem | What to do |
@@ -329,3 +335,4 @@ The same explanations are available from the circled question marks in the edito
 **Delete saved change** — Deletes this saved change after confirmation. This is separate from brush Undo/Redo. Disable Apply in next render if you only want to compare without losing it.
 
 **Include in merge** — Marks this saved change for Merge Checked Changes. It does not enable or disable the change’s effect. Apply in next render controls whether it affects the output.
+

@@ -509,3 +509,16 @@ Added SHARP Manual Depth Editor title; temporary stereo preview; Space-drag pann
 - Version/build metadata 0.3.0; added manual GitHub latest-release check with numeric semantic version comparison. No automatic download/execution.
 - New setup/build includes WebKit, editor scripts and bundled guide. Existing-install update stages/signs/verifies before replacement and preserves external models/environments/sessions.
 - macOS compilation and runtime verification pending on Ted’s Mac; do not publish as tested release until confirmed.
+
+
+## 2026-10-11 — Completion audio alerts
+- Added Audio Alerts menu with global enable, per-file choices, Preview, Stop Audio, Select All/None, and import.
+- SHARP/IW3 verified output branch and Reframe verified assembly branch call once per conversion. Depth-map-only completion also announces. Manual Show Result does not announce. Errors/cancellation do not reach the success hooks.
+- NSSound retained in singleton; new playback stops previous audio. Playback failure does not change conversion result.
+- Recordings: ~/Library/Application Support/InjectZ/AudioAlerts. UserDefaults stores enabled, excluded filenames, remaining shuffle queue, known enabled files, and last played filename. Queue persists across launches; no immediate repeat between rounds with two or more enabled files. Imports are copied with non-overwriting names.
+- Installer validates original supplied source SHA256, preserves signing certificate and designated requirements, stages compilation before replacement, backs up app/source, restores on replacement failure. Existing preferences and audio retained.
+- Linux verification: structural success-hook checks, shell syntax, recording decode checks, shuffle simulation. macOS AppKit compilation and UI/audio playback must be verified by installer and user; no claim of Mac runtime testing.
+- Public release: source/docs patch provided separately without songs pending redistribution decision. Existing public repository setup/build scripts must be preserved; install helper is for Ted's current signed installation.
+
+- Installed verification: Ted confirmed on October 11 that the installed feature works. Initial installer rejected an ad-hoc app; its existing InjectZ Development identity was present and used for signing after correcting the certificate lookup. Public source does not embed Ted’s signing identity.
+- Repository sync also includes the previously installed deferred photo-open launch fix and direct full-width Quick Look preview. Build source now links Quartz. No new numbered release or downloadable binary is claimed by this commit.

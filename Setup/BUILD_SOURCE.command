@@ -16,7 +16,7 @@ cp "$repo/IW3/IW3Settings.json" "$repo/IW3/IW3SettingHelp.json" "$stage/"
 cp "$repo/Assets/InjectZ.icns" "$repo/Assets/InjectZHeader.png" "$app/Contents/Resources/"
 cp "$repo/Assets/InjectZ_User_Guide.html" "$app/Contents/Resources/"
 /usr/bin/ditto "$repo/SHARPDepthEditor" "$stage/Development/SHARPDepthEditor"
-/usr/bin/swiftc -O "$stage/InjectZ.swift" -o "$app/Contents/MacOS/InjectZ" -framework Cocoa -framework UniformTypeIdentifiers -framework ApplicationServices -framework WebKit
+/usr/bin/swiftc -O "$stage/InjectZ.swift" -o "$app/Contents/MacOS/InjectZ" -framework Cocoa -framework UniformTypeIdentifiers -framework ApplicationServices -framework WebKit -framework Quartz
 /usr/bin/swiftc -O "$stage/Development/Reframe/LibraryGuard.swift" -o "$stage/Development/Reframe/LibraryGuard" -framework Cocoa
 /bin/cat > "$app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -39,3 +39,4 @@ PLIST
 echo "Built development staging folder: $stage"
 echo 'Not installed or distribution-signed. Dependencies and models must be prepared separately.'
 echo 'Read Docs/SETUP.md before using this staged build; do not replace a working app with it.'
+

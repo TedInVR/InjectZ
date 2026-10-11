@@ -12,6 +12,12 @@ Inject Z was vibe-coded with ChatGPT. In plain English, I described what I wante
 
 For a brief video introducing you to Inject Z, check out YouTube: https://www.youtube.com/watch?v=9XMi_wGZiH8  
 
+## Latest source changes
+
+The main branch now includes completion audio alerts, the photo drag-to-launch fix, and a direct full-width Quick Look preview. These source changes are newer than the **0.3.0 release ZIP**; they are not yet a separately published release.
+
+**Completion audio alerts:** Import your own recordings through **Inject Z → Audio Alerts…**. Enable favorites, preview them, or turn alerts off. After a successful regular conversion, one selected recording plays from a persistent shuffled cycle. No music is bundled with this public source update. See [Audio alerts](Docs/AUDIO_ALERTS.md).
+
 ## Conversion engines
 
 - **Apple SHARP:** Gaussian splat reconstruction with adjustable depth and optional softening around depth edges. Includes a correction for distant-sky clipping in the Metal renderer, custom depth strength, and a Manual Depth Editor for adjusting selected parts of the reconstructed scene.
@@ -188,3 +194,4 @@ No public reuse license has yet been selected for Inject Z's original code. Comm
 Third-party engines and AI models retain their own licenses. Apple's SHARP model is restricted to defined non-commercial scientific research and academic development; free or hobby use is not automatically covered. Its agreement excludes commercial product development/use. Downloading it separately does not remove those restrictions.
 
 This repository does not include AI model weights or Okano Izumi's private Splat Stereo source. See [third-party components](Docs/THIRD_PARTY.md) and the official upstream licenses before using external engines or models.
+
