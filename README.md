@@ -16,7 +16,7 @@ For a brief video introducing you to Inject Z, check out YouTube: https://www.yo
 
 The main branch now includes completion audio alerts, the photo drag-to-launch fix, and a direct full-width Quick Look preview. These source changes are newer than the **0.3.0 release ZIP**; they are not yet a separately published release.
 
-**Completion audio alerts:** Import your own recordings through **Inject Z → Audio Alerts…**. Enable favorites, preview them, or turn alerts off. After a successful regular conversion, one selected recording plays from a persistent shuffled cycle. Includes 28 completion melodies created and supplied by Ted Whitten. See [Audio alerts](Docs/AUDIO_ALERTS.md).
+**Completion audio alerts:** Import your own recordings through **Inject Z → Audio Alerts…**. Enable favorites, preview them, or turn alerts off. After a successful regular conversion, one selected recording plays from a persistent shuffled cycle. Includes 46 completion melodies created and supplied by Ted Whitten. See [Audio alerts](Docs/AUDIO_ALERTS.md).
 
 ## Conversion engines
 

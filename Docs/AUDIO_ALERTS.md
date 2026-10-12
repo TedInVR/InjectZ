@@ -10,4 +10,6 @@ Recordings are copied into `~/Library/Application Support/InjectZ/AudioAlerts`. 
 
 ## Included melodies
 
-Builds include 28 M4A completion melodies created and supplied by Ted Whitten. They are installed automatically on first use; you can preview them, disable any of them, turn alerts off, or add your own recordings. Existing recordings and choices are preserved.
+Builds include 46 M4A completion melodies created and supplied by Ted Whitten. They are installed automatically on first use; you can preview them, disable any of them, turn alerts off, or add your own recordings. Existing recordings and choices are preserved.
+
+The October 12 addition supplies 18 more M4A tracks alongside the original 28 in `Assets/AudioAlerts`. Lyrics-only text files are excluded. The existing build script bundles all tracks in that folder; newly bundled filenames are added on first use after installing a build containing them. Existing recordings and favorite settings are preserved. Importing recordings into a personal installation does not publish them to GitHub.

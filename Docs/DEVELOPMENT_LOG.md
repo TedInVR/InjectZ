@@ -527,3 +527,12 @@ Added SHARP Manual Depth Editor title; temporary stereo preview; Space-drag pann
 - Ted explicitly authorized publishing all 28 supplied M4A melodies and stated that he holds the necessary rights through his paid Suno subscription.
 - Assets/AudioAlerts contains the melodies. BUILD_SOURCE copies them into app resources before signing. The audio manager copies new bundled filenames into the user audio folder without overwriting existing files; a persistent per-name registry respects later deletion.
 - Global disable, favorite choices, custom imports and shuffle history are preserved. Shell syntax and all recording decodes verified; bundled seeding is newly added and has not yet been run on macOS. Existing audio playback was confirmed by Ted.
+
+
+## 2026-10-12 — Additional completion melodies
+
+- Added 18 M4A recordings supplied by Ted Whitten to Assets/AudioAlerts alongside the existing 28 files (46 total).
+- Source: Inject Z still need to download - usesuno.com.zip. Preserved the supplied audio basenames to match manual imports; omitted all lyrics-only TXT files and macOS archive metadata.
+- No conversion or audio-selection code changes. Existing Setup/BUILD_SOURCE.command bundles the directory; the existing per-filename bundled installation registry seeds new filenames while preserving user selections and recordings.
+- Validation: all 18 additions fully decoded with ffmpeg without errors; new filenames do not collide with existing paths; uploaded Git blob hashes checked against local bytes.
+- README/audio guide counts updated. These additions are on main; the previously published 0.3.0 release asset is unchanged and requires a future packaged release to include them.

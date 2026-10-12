@@ -1,5 +1,9 @@
 # Change history
 
+## Unreleased — 2026-10-12
+
+- Added 18 supplied M4A completion tracks to the existing collection, bringing the bundled file count to 46. Lyrics-only text files are excluded.
+
 ## Unreleased — 2026-10-11
 
 - Includes 28 completion melodies with automatic installation into new builds.
