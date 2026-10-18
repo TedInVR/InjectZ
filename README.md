@@ -195,3 +195,10 @@ Third-party engines and AI models retain their own licenses. Apple's SHARP model
 
 This repository does not include AI model weights or Okano Izumi's private Splat Stereo source. See [third-party components](Docs/THIRD_PARTY.md) and the official upstream licenses before using external engines or models.
 
+
+
+## Voluntary support
+
+Choose **Help → Support Inject Z…** to support Ted in VR through [Ko-fi](https://ko-fi.com/tedwhitten), [PayPal](https://paypal.me/theodorewhitten1), or [Patreon](https://patreon.com/TedWhitten). Contributions are optional; all app features remain free. Links open in your default browser. Patreon memberships are recurring; Ko-fi and PayPal provide one-time contribution options.
+
+This feature is included in the current source on main. The previously published 0.3.0 release download has not been updated.

@@ -536,3 +536,11 @@ Added SHARP Manual Depth Editor title; temporary stereo preview; Space-drag pann
 - No conversion or audio-selection code changes. Existing Setup/BUILD_SOURCE.command bundles the directory; the existing per-filename bundled installation registry seeds new filenames while preserving user selections and recordings.
 - Validation: all 18 additions fully decoded with ffmpeg without errors; new filenames do not collide with existing paths; uploaded Git blob hashes checked against local bytes.
 - README/audio guide counts updated. These additions are on main; the previously published 0.3.0 release asset is unchanged and requires a future packaged release to include them.
+
+
+## 2026-10-18 — Optional donation support
+
+- Added native Help menu with guide and reusable nonmodal support window, three explicit browser-opening actions, Close/Escape and existing Command-W support. No startup/network/conversion hooks or payment processing.
+- Applied additive patch to current main; existing source preserved outside menu insertion and appended support class.
+- Ted compiled and installed this same support implementation on his Mac, preserving com.injectz.app.dev and InjectZ Development signing identity; Ko-fi and PayPal opened successfully. Patreon public page opens; paid-tier setup and payment/payout validation remain separate.
+- Source update only: existing release version and download remain unchanged.

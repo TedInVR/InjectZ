@@ -264,6 +264,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         depthMenu.addItem(stopEditor)
         depthMenuItem.submenu = depthMenu
         mainMenu.addItem(depthMenuItem)
+        // Optional donation support; no automatic prompts.
+        let supportHelpMenuItem = NSMenuItem(title: "Help", action: nil, keyEquivalent: "")
+        let supportHelpMenu = NSMenu(title: "Help")
+        let supportGuideItem = NSMenuItem(title: "Inject Z User Guide", action: #selector(showInjectZHelp(_:)), keyEquivalent: "?")
+        supportGuideItem.keyEquivalentModifierMask = [.command]
+        supportGuideItem.target = self
+        supportHelpMenu.addItem(supportGuideItem)
+        supportHelpMenu.addItem(NSMenuItem.separator())
+        let supportMenuItem = NSMenuItem(title: "Support Inject Z…", action: #selector(InjectZSupportPanel.showSupport(_:)), keyEquivalent: "")
+        supportMenuItem.target = InjectZSupportPanel.shared
+        supportHelpMenu.addItem(supportMenuItem)
+        supportHelpMenuItem.submenu = supportHelpMenu
+        mainMenu.addItem(supportHelpMenuItem)
+        NSApp.helpMenu = supportHelpMenu
         NSApp.mainMenu = mainMenu
     }
 
@@ -2061,5 +2075,101 @@ final class InjectZAudioAlerts: NSObject {
             do { try FileManager.default.copyItem(at: url, to: dest) } catch { failures += 1 }
         }
         reload(); if failures > 0 { message?.stringValue = "\(failures) file(s) could not be added. Other files were imported." }
+    }
+}
+
+
+
+// Inject Z optional support panel — 2026-10-18.
+// Only an explicit Help menu action presents this window or opens a URL.
+final class InjectZSupportPanel: NSObject {
+    static let shared = InjectZSupportPanel()
+    private var supportWindow: NSWindow?
+    private let destinations = [
+        "https://ko-fi.com/tedwhitten",
+        "https://paypal.me/theodorewhitten1",
+        "https://patreon.com/TedWhitten"
+    ]
+
+    @objc func showSupport(_ sender: Any?) {
+        if let existing = supportWindow {
+            existing.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        let panel = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 510, height: 540),
+                             styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        panel.title = "Support Inject Z"
+        panel.isReleasedWhenClosed = false
+        guard let content = panel.contentView else { return }
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .centerX
+        stack.spacing = 14
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        content.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 32),
+            stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -32),
+            stack.centerYAnchor.constraint(equalTo: content.centerYAnchor)
+        ])
+        let heart = NSImageView()
+        heart.image = NSImage(systemSymbolName: "heart.fill", accessibilityDescription: "Support")
+        heart.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 30, weight: .regular)
+        heart.contentTintColor = .systemPink
+        heart.setAccessibilityElement(false)
+        stack.addArrangedSubview(heart)
+        heart.heightAnchor.constraint(equalToConstant: 36).isActive = true
+
+        func label(_ text: String, size: CGFloat, bold: Bool = false) -> NSTextField {
+            let field = NSTextField(wrappingLabelWithString: text)
+            field.alignment = .center
+            field.font = bold ? .boldSystemFont(ofSize: size) : .systemFont(ofSize: size)
+            field.textColor = .labelColor
+            stack.addArrangedSubview(field)
+            field.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+            return field
+        }
+        _ = label("Support Inject Z", size: 21, bold: true)
+        _ = label("Inject Z is independently developed and provided free of charge.", size: 13)
+        _ = label("If you enjoy using the app and would like to support its continued development, voluntary contributions are greatly appreciated.", size: 13)
+        let titles = ["Ko-fi — Leave a Tip", "PayPal — Make a Donation", "Patreon — Become a Supporter"]
+        for (index, title) in titles.enumerated() {
+            let button = NSButton(title: title, target: self, action: #selector(openDestination(_:)))
+            button.bezelStyle = .rounded
+            button.controlSize = .large
+            button.font = .systemFont(ofSize: 14)
+            button.tag = index
+            button.toolTip = "Open \(destinations[index]) in your default browser"
+            button.setAccessibilityHelp(button.toolTip)
+            stack.addArrangedSubview(button)
+            button.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+            button.heightAnchor.constraint(greaterThanOrEqualToConstant: 32).isActive = true
+        }
+        let thanks = label("Thank you for supporting Inject Z!", size: 12)
+        thanks.textColor = .secondaryLabelColor
+        let close = NSButton(title: "Close", target: self, action: #selector(closeSupport(_:)))
+        close.bezelStyle = .rounded
+        close.keyEquivalent = "\u{1b}"
+        stack.addArrangedSubview(close)
+        supportWindow = panel
+        panel.center()
+        panel.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func closeSupport(_ sender: Any?) {
+        supportWindow?.performClose(sender)
+    }
+
+    @objc private func openDestination(_ sender: NSButton) {
+        guard destinations.indices.contains(sender.tag),
+              let url = URL(string: destinations[sender.tag]) else { return }
+        if !NSWorkspace.shared.open(url) {
+            let alert = NSAlert()
+            alert.messageText = "Could not open your browser"
+            alert.informativeText = "You can visit this address directly:\n\(url.absoluteString)"
+            if let panel = supportWindow { alert.beginSheetModal(for: panel, completionHandler: nil) }
+        }
     }
 }

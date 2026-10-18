@@ -29,3 +29,8 @@
 
 - Initial source upload for collaboration; includes multi-output GUI and Reframe size-normalization recovery.
 
+
+
+## Unreleased — 2026-10-18
+
+- Added Help → Support Inject Z with optional Ko-fi, PayPal and Patreon links. No unsolicited prompts or changes to conversion features.
