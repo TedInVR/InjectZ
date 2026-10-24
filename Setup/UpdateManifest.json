@@ -332,7 +332,7 @@
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",
-      "digest": "f7725610b2de0c4f60302a68ca2dad6f2e51ee65fa01002d4e0f6b6c378687bf"
+      "digest": "1d6873f210bd4777fddbf24a82783d0b930485a1af2c977c24dcdb30c1583a5d"
     }
   }
 }

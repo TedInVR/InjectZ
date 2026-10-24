@@ -74,11 +74,16 @@ with tempfile.TemporaryDirectory() as td:
  def certified(command,**kwargs):
   commands.append(list(map(str,command)))
   if '-dv' in command:return types.SimpleNamespace(stdout=b'',stderr=b'Authority=Local Inject Z Certificate\nflags=0x10000(runtime)')
-  if '--extract-certificates' in command:
-   Path(str(command[command.index('--extract-certificates')+1])+'0').write_bytes(certificate)
+  extraction=[str(arg) for arg in command if str(arg).startswith('--extract-certificates')]
+  if extraction:
+   assert '--extract-certificates' not in command, 'Optional certificate prefix must use --extract-certificates=PREFIX'
+   assert len(command)==4 and str(command[-1])==str(root/'InjectZ.app')
+   prefix=extraction[0].split('=',1)[1]
+   Path(prefix+'0').write_bytes(certificate)
   if 'find-identity' in command:return types.SimpleNamespace(stdout=fingerprint.encode(),stderr=b'')
   if '-r-' in command:return types.SimpleNamespace(stdout=b'designated => identifier "com.injectz.app.dev"',stderr=b'')
   return types.SimpleNamespace(stdout=b'',stderr=b'')
  with patch.object(u,'run',certified):u.sign_like_existing(root/'InjectZ.app',root/'InjectZ.app',Path(td))
  assert any('--sign' in c and fingerprint in c and '--requirements' in c and '--options' in c for c in commands)
 print('Inject Z updater: archive/checksum validation, code-only installation, icon/model/runtime/session/settings preservation, rollback, active-work protection and ad-hoc signing command selection passed. Native macOS build/signing is not verified here.')
+

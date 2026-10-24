@@ -101,7 +101,7 @@ def sign_like_existing(staged,existing,work):
     details=run(['/usr/bin/codesign','-dv','--verbose=4',existing]).stderr.decode(errors='replace')
     identity='-';options=[]
     if 'Signature=adhoc' not in details:
-        prefix=work/'signer';run(['/usr/bin/codesign','-d','--extract-certificates',prefix,existing])
+        prefix=work/'signer';run(['/usr/bin/codesign','-d','--extract-certificates='+str(prefix),existing])
         certificate=Path(str(prefix)+'0')
         identity=hashlib.sha1(certificate.read_bytes()).hexdigest().upper()
         identities=run(['/usr/bin/security','find-identity','-v','-p','codesigning']).stdout.decode()
@@ -268,3 +268,4 @@ def main():
     return 0
 
 if __name__=='__main__':sys.exit(main())
+
