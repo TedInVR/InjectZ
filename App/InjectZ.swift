@@ -941,9 +941,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         confirm.informativeText = "Working album: InjectZ-\(id)\nOriginal for output: \(photo.lastPathComponent)\n\nNo new images will be imported. Confirm that the original is correct and that Photos has this exact working album. The app will attempt automatic RIGHT selection after resuming."
         confirm.addButton(withTitle: "Resume")
         confirm.addButton(withTitle: "Cancel")
-        guard confirm.runModal() == .alertFirstButtonReturn else {
-                    self.execute(["--discard-job", job]) { _ in }; return
-                }
+        guard confirm.runModal() == .alertFirstButtonReturn else { return }
         guard checkReframePermission() else { return }
         let guardURL = reframeDir.appendingPathComponent("LibraryGuard")
         guard FileManager.default.isExecutableFile(atPath: guardURL.path) else {
@@ -2262,3 +2260,4 @@ func injectZStartupUpdateLock() -> Int32 {
     }
     Darwin.close(descriptor); exit(1)
 }
+

@@ -4,7 +4,7 @@
   "files": {
     "App/InjectZ.swift": {
       "algorithm": "sha256",
-      "digest": "e4ee58aa78fd11c49451142d14398ca933de3baa23e42263be1f48871ed250b4"
+      "digest": "1f984e2dde0de25196a621f80cf13d2b50eb13a617b7a3c9c3500d97e0629e89"
     },
     "Assets/AudioAlerts/Inject Z Conversion Complete - usesuno.com.m4a": {
       "algorithm": "git-blob-sha1",
