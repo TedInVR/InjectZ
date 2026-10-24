@@ -9,7 +9,7 @@ app="$stage/InjectZ.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources" "$stage/Development/Reframe" "$stage/Development/IW3"
 cp "$repo/App/InjectZ.swift" "$stage/InjectZ.swift"
 cp "$repo/SHARP/"*.py "$stage/"
-cp "$repo/Reframe/"* "$stage/Development/Reframe/"
+for file in "$repo/Reframe/"*; do [[ ! -f "$file" ]] || cp "$file" "$stage/Development/Reframe/"; done
 cp "$repo/IW3/photo_iw3.py" "$stage/Development/IW3/"
 cp "$repo/IW3/create_layered_psd.py" "$stage/Development/"
 cp "$repo/IW3/IW3Settings.json" "$repo/IW3/IW3SettingHelp.json" "$stage/"
@@ -17,6 +17,8 @@ cp "$repo/Assets/InjectZ.icns" "$repo/Assets/InjectZHeader.png" "$app/Contents/R
 cp "$repo/Assets/InjectZ_User_Guide.html" "$app/Contents/Resources/"
 /usr/bin/ditto "$repo/Assets/AudioAlerts" "$app/Contents/Resources/AudioAlerts"
 /usr/bin/ditto "$repo/SHARPDepthEditor" "$stage/Development/SHARPDepthEditor"
+mkdir -p "$stage/Development/Updater"
+cp "$repo/Setup/injectz_update.py" "$stage/Development/Updater/"
 /usr/bin/swiftc -O "$stage/InjectZ.swift" -o "$app/Contents/MacOS/InjectZ" -framework Cocoa -framework UniformTypeIdentifiers -framework ApplicationServices -framework WebKit -framework Quartz
 /usr/bin/swiftc -O "$stage/Development/Reframe/LibraryGuard.swift" -o "$stage/Development/Reframe/LibraryGuard" -framework Cocoa
 /bin/cat > "$app/Contents/Info.plist" <<'PLIST'
@@ -29,8 +31,8 @@ cp "$repo/Assets/InjectZ_User_Guide.html" "$app/Contents/Resources/"
 <key>CFBundleDisplayName</key><string>Inject Z</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleIconFile</key><string>InjectZ</string>
-<key>CFBundleShortVersionString</key><string>0.3.0</string>
-<key>CFBundleVersion</key><string>0.3.0</string>
+<key>CFBundleShortVersionString</key><string>0.3.1</string>
+<key>CFBundleVersion</key><string>0.3.1</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSAppleEventsUsageDescription</key><string>Inject Z controls Photos to create and export stereo working images.</string>
@@ -40,4 +42,5 @@ PLIST
 echo "Built development staging folder: $stage"
 echo 'Not installed or distribution-signed. Dependencies and models must be prepared separately.'
 echo 'Read Docs/SETUP.md before using this staged build; do not replace a working app with it.'
+
 

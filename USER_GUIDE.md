@@ -141,3 +141,16 @@ If asking for help, include the engine, selected model, depth, output formats an
 ## Current limitations
 
 The guided installer is a preview, model licenses differ, and conversions are AI estimates rather than exact reconstructions. Individual photos may contain incorrect depth, halos or invented background areas. Multiple concurrent SHARP conversions are not supported safely by the current extension-lock handling. Use one conversion at a time, and keep your original photographs.
+
+
+## App updates (0.3.1 source candidate)
+
+Use **Inject Z → Check for Updates…** to download, verify and prepare a newer
+source version inside the app. Install and Relaunch closes the idle app and
+installs the already-built replacement. Finish conversions and save/close the
+depth editor first. **Automatically Update While Closed** uses a user background
+agent to check about every 15 minutes while logged in. It leaves open work alone.
+One activation is required: quit Inject Z and run Setup/ENABLE_APP_UPDATES.command
+from the current GitHub source. Models, runtimes, settings, sessions and the icon
+are preserved. See Docs/UPDATES.md for signing requirements and recovery.
+The Swift interface and native scheduling still need testing on a Mac.

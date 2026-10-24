@@ -1,0 +1,338 @@
+{
+  "version": "0.3.1",
+  "format": 1,
+  "files": {
+    "App/InjectZ.swift": {
+      "algorithm": "sha256",
+      "digest": "e4ee58aa78fd11c49451142d14398ca933de3baa23e42263be1f48871ed250b4"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "b4452ed7af0815ea32aa8bbede897b0cfeb1e1ac"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(1).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "a69d9b12f492d9c9fc292d0cd092c58a9e5a6014"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(10).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "4bf01af4e7e76f6db0b959a245cc2c1f40714eb1"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(11).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "363e7868e27580e6ede343c39a6ffe7bc6167487"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(12).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "da02088d9dd01c5a6567b96c910e79990264b347"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(13).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "7278ca6bfc4553fe6de880ac2b0ba01d8128d905"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(14).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "b7eb0ea1eea4cbc3b4dc3c65703d7f1a0c817ef3"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(15).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "a69d9b12f492d9c9fc292d0cd092c58a9e5a6014"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(16).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "5e013dc4d5ca3951d77bf10eb1e2d99ed0db8d8d"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(17).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "8404292c634fdfada13be2803a956f79d21ba1e7"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(18).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "b53177b1d5035383cc359f629cbdd1898c041fc8"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(19).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "f6db64b01fe44bfc1123c86cb6d7fc8f9247bc2c"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(2).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "4386b82fdf525d424a3c4f674d5ee53cb9b0fd80"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(20).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "447b62ed38571c0ed9dddc496788583b0fba8e5e"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(21).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "ae93c45fbf421ab09b73163bca55540a2e9c2cdc"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(22).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "e10b215aad57febb37c2fccb90d565ea4a8f1c19"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(23).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "45c02514ed02a19392904065d16a2298f67aeaed"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(24).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "60cd34f3c3f3585f762be3fb9ddc8d1eaaf7d714"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(25).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "74fda79d3591b8accf8648ed33db977f7cde0cfa"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(26).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "c33085966d81aee585c75ef092e5b2689883c58e"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(27).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "1005da0a9dd2ec720a1ec4010f69bf9eb34e2a7a"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(28).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "5eee9641c61ebd931510019d753d8be64c91034c"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(3).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "65b8405b5c9b42069952ed51245a49f9d73ef9de"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(4).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "df98c9a047e30be9a3278558137a1294f1938efa"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(5).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "938cbbfa1d9e06881a6b45bbd56a3559fc5bd43e"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(6).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "aa14679a8b9c2b207a8c7e2f9a372063ca2a2aff"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(7).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "c52ed52c06edaf1d0dc3e80f8cb86ddcc827cd4e"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(8).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "259d0afc94b15adc101c07d9efa262120c97acc3"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete(9).m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "5f70d7d1d31b99086a123dc6ab8225a0c183a71d"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-10 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "b6da028b12a025d3f9a5742e9b308597abd4ee17"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-11 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "89771956d745266e4e21e14e55cfcb36975b0d7a"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-12 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "4e8d7fa8674df5bf8174be882aad8277b6744494"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-13 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "c62de00530d334b2238c386b2099edda763377aa"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-14 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "2c87ae3614f356b0356e8eba88b8b6cd2fd5513f"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-15 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "c00734e315ce524b9c528338d61df9f59ac7949c"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-16 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "0f2ebba162731967825c06f90e60ee6613ced6bd"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-17 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "d461b17d51a81d60b131f8968453ae57358835aa"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-18 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "6638035646902668ebeeb6e8223111c3efa26b31"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-2 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "e06cb48a9dba33bcb4ac0e8209fd4838c67c8527"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-3 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "eb670e00036744f9f14fd0f37f642ec1b05e5848"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-4 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "09385f0462d901d5c146c4285b8affed6295adbc"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-5 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "fde121cfb6aaa42d06e3245ec0fcf53c487ffd2e"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-6 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "a7ecdacbd61a4855c7d23a304a04640fd8db9ed1"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-7 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "5d32a3cb0977c11771e73efe179b837a33f43b06"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-8 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "9d05bfd043e8f37f4fb43748ab1e209dc1c8c914"
+    },
+    "Assets/AudioAlerts/Inject Z Conversion Complete-9 - usesuno.com.m4a": {
+      "algorithm": "git-blob-sha1",
+      "digest": "f0824dec9e05747bf61ec92e65f380be6ac39816"
+    },
+    "Assets/InjectZHeader.png": {
+      "algorithm": "git-blob-sha1",
+      "digest": "3424b5a5b6512fb9ea72a71cf85dc498a2ae403b"
+    },
+    "Assets/InjectZ_User_Guide.html": {
+      "algorithm": "sha256",
+      "digest": "562f309b187e0a4a6f64fa0f1e2a7e9c01b8173e4623ed17972cf8e619193138"
+    },
+    "IW3/IW3SettingHelp.json": {
+      "algorithm": "git-blob-sha1",
+      "digest": "8bc7ea077347b2051996a6b2f17cad55d514963c"
+    },
+    "IW3/create_layered_psd.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "4e3d23b38d885a542616e3ea86601ced6afee6cd"
+    },
+    "IW3/photo_iw3.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "0ac399ba07f0571420918d872c3cf1fbbd580c82"
+    },
+    "Reframe/ExportEditedAlbum.applescript": {
+      "algorithm": "git-blob-sha1",
+      "digest": "fbbfe3390eb28350bf78902c1745401076a78278"
+    },
+    "Reframe/ExportSelectedEye.applescript": {
+      "algorithm": "git-blob-sha1",
+      "digest": "7767be139e123f8640b44df95b0309d5dc9eef77"
+    },
+    "Reframe/ExportSingleRight.applescript": {
+      "algorithm": "git-blob-sha1",
+      "digest": "0f6e4b2e8da60960e09ae658c71c9a26f6145492"
+    },
+    "Reframe/FinishReframe.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "0caca7903cbaccf87fcfd7d1211302a682fe5551"
+    },
+    "Reframe/FinishSingleRight-BeforeR15-20260928-164704.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "c060d61f2fb1ce1df57c104cfd3ac30ead966ee3"
+    },
+    "Reframe/FinishSingleRight.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "8e43dc4cc31f0c78722124dad3cbbd5c6bb20ca2"
+    },
+    "Reframe/ImportWorkingCopies.applescript": {
+      "algorithm": "git-blob-sha1",
+      "digest": "03e4ff9646f496e671668e904b5f887a146ebdde"
+    },
+    "Reframe/LibraryGuard.swift": {
+      "algorithm": "git-blob-sha1",
+      "digest": "b97efe45e18c61015a0eef34c9c7eec300c3089e"
+    },
+    "Reframe/ReadSelectedFilename.applescript": {
+      "algorithm": "git-blob-sha1",
+      "digest": "592797886c040a7b03af1982b2081464b821ebc9"
+    },
+    "Reframe/ReframeController.swift": {
+      "algorithm": "git-blob-sha1",
+      "digest": "70a643475af251e45b3f10223d44f76ebc8a2226"
+    },
+    "Reframe/RemoveCompletedAlbum.applescript": {
+      "algorithm": "git-blob-sha1",
+      "digest": "8ed635738163dd73e8d269a3da1cbcd781da37da"
+    },
+    "Reframe/SelectRight.applescript": {
+      "algorithm": "git-blob-sha1",
+      "digest": "5486351677b52ca963446d587d9238e0e9e87318"
+    },
+    "Reframe/SharedStereoFormats.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "bcd79a21764768e0d4ea651688c3122398245ffa"
+    },
+    "Reframe/StereoAssembler.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "9e1207fdfb216d880ab604ebd0ca660d074bfea4"
+    },
+    "Reframe/WindowGuard.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "5982066c260789562aceee4f485421a54c929b3c"
+    },
+    "SHARP/EdgeSoftener.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "f3ee1fcd11d3f1e743f159187ce1bd00d6611e03"
+    },
+    "SHARP/injectz_engine.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "0356382e53c4f3e8cd90775f1ecf6dfd26f3ab29"
+    },
+    "SHARP/injectz_sharp_render.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "8e3bbddb8d5cf51a8df5dc7f69da243639d2ae39"
+    },
+    "SHARPDepthEditor/background_repair.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "e6b9bab6d2012b42f731f8c2b92ed2df1341ed91"
+    },
+    "SHARPDepthEditor/depth_display.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "adf1d486ee53e842ccb0244a64fdc588b1dee52e"
+    },
+    "SHARPDepthEditor/edit_hook.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "aefd611a0e7b655991fc552ee323c806143bfbc2"
+    },
+    "SHARPDepthEditor/editor.html": {
+      "algorithm": "git-blob-sha1",
+      "digest": "61dc048ac30d9bb721a3e4c7d97882ca43d4b442"
+    },
+    "SHARPDepthEditor/geometry.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "bf987b9f1805e5ff3416f22ba7f3f1ecc98842a8"
+    },
+    "SHARPDepthEditor/help_content.json": {
+      "algorithm": "git-blob-sha1",
+      "digest": "1f25c1a0877ab5e5470099565a1743d7b3aeebb4"
+    },
+    "SHARPDepthEditor/manual_mask.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "9728ce2cef7a9917045dd6a75a9fe6e675d1115f"
+    },
+    "SHARPDepthEditor/region_state.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "a3c9ed8fd3a80d42ffdf6f188692a6beefa398cf"
+    },
+    "SHARPDepthEditor/segment.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "90edb1abc7284a005efd0004383955d0605f4b9b"
+    },
+    "SHARPDepthEditor/server.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "7f82adaf2fdcdb04aae0e4ad8223e58f7271447b"
+    },
+    "SHARPDepthEditor/shape_weights.py": {
+      "algorithm": "git-blob-sha1",
+      "digest": "42ecb35d82bbd2982d34c2f6b116a154e31bdb30"
+    },
+    "Setup/UpdateRelease.json": {
+      "algorithm": "sha256",
+      "digest": "76293850ccf6eb9d31aa89e59e695ccf1db9fa86449d6bd60e714424156a371f"
+    },
+    "Setup/injectz_update.py": {
+      "algorithm": "sha256",
+      "digest": "f7725610b2de0c4f60302a68ca2dad6f2e51ee65fa01002d4e0f6b6c378687bf"
+    }
+  }
+}

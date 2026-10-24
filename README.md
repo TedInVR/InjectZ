@@ -65,11 +65,32 @@ Installation is in **~/InjectZ**, inside your home folder. The app is **~/Inject
 
 **An existing ~/InjectZ folder blocks first-time setup.** Use UPDATE_EXISTING.command to update a working installation. Do not delete your existing folder to bypass this check.
 
-### Getting future updates
+### Manual and automatic app updates (new source version 0.3.1)
 
-Choose **Inject Z → Check for Updates…** in the app menu. It checks published GitHub Releases and offers to open the download page when a newer version is available. Download that release’s ZIP, quit Inject Z, and run its **UPDATE_EXISTING.command**.
+The main branch now adds **Inject Z → Check for Updates…** with verified
+in-app download/preparation and **Automatically Update While Closed**.
+Automatic updates check this source repository about every 15 minutes while
+logged in and install only when Inject Z and its engine/editor workers are
+closed. Models, Python environments, custom IW3 settings, saved sessions and
+the app icon are retained. Replacements are compiled and code-signed locally
+before installation; program files and the previous app are backed up.
 
-Version 0.3.0 does not automatically download or install updates. All of the app’s source and support files are included in one release ZIP; there is no need to download them individually.
+**One-time activation for an existing installation:** quit Inject Z and close
+its depth editor/conversions. Download **Code → Download ZIP**, extract it and
+run **Setup/ENABLE_APP_UPDATES.command**. This standalone command can also be
+copied out of the source folder; it obtains a commit-pinned, checksum-verified
+updater itself. Keep Terminal open until it finishes. It opens the updated app
+and registers the user background updater. No models or environments are
+reinstalled. Future updates need no download folders or installer commands.
+
+This is a **source-update candidate**, newer than the published 0.3.0 release
+ZIP. Python integrity/rollback tests pass; the new Swift interface, native
+compilation/signing and live LaunchAgent scheduling still require Mac testing.
+The activation command leaves the existing app untouched if preparation fails.
+A certificate-signed app requires its existing signing key to remain available;
+ad-hoc installations remain ad hoc and may need permission approval again.
+No signing key, personal account details or private credentials are distributed.
+See [update details and recovery](Docs/UPDATES.md).
 
 ## SHARP Manual Depth Editor
 
@@ -202,3 +223,4 @@ This repository does not include AI model weights or Okano Izumi's private Splat
 Choose **Help → Support Inject Z…** to support Ted in VR through [Ko-fi](https://ko-fi.com/tedwhitten), [PayPal](https://paypal.me/theodorewhitten1), or [Patreon](https://patreon.com/TedWhitten). Contributions are optional; all app features remain free. Links open in your default browser. Patreon memberships are recurring; Ko-fi and PayPal provide one-time contribution options.
 
 This feature is included in the current source on main. The previously published 0.3.0 release download has not been updated.
+

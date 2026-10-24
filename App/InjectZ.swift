@@ -1,4 +1,5 @@
 import Quartz
+import Darwin
 import Cocoa
 import UniformTypeIdentifiers
 import ApplicationServices
@@ -123,6 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         buildMainMenu()
         buildUI()
+        InjectZUpdates.shared.register()
         mainUIReady = true
         if let photo = pendingLaunchPhoto {
             pendingLaunchPhoto = nil
@@ -131,42 +133,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func checkForInjectZUpdates(_ sender: Any?) {
-        let url = URL(string: "https://api.github.com/repos/TedInVR/InjectZ/releases/latest")!
-        var request = URLRequest(url: url)
-        request.timeoutInterval = 20
-        request.setValue("InjectZ/0.3.0", forHTTPHeaderField: "User-Agent")
-        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                let alert = NSAlert()
-                let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.3.0"
-                if (response as? HTTPURLResponse)?.statusCode == 404 {
-                    alert.messageText = "No published release yet"
-                    alert.informativeText = "You have Inject Z \(current). Releases will appear on GitHub when published."
-                } else if error == nil, (response as? HTTPURLResponse)?.statusCode == 200,
-                          let data, let info = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
-                          let tag = info["tag_name"] as? String {
-                    let latest = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
-                    let valid = latest.range(of: "^[0-9]+\\.[0-9]+\\.[0-9]+$", options: .regularExpression) != nil
-                    if valid && latest.compare(current, options: .numeric) == .orderedDescending {
-                        alert.messageText = "Inject Z \(latest) is available"
-                        alert.informativeText = "You have \(current). Open the release page to read the changes and download the update. Quit Inject Z before running UPDATE_EXISTING.command from the downloaded package."
-                        alert.addButton(withTitle: "Open Release Page")
-                        alert.addButton(withTitle: "Later")
-                        if alert.runModal() == .alertFirstButtonReturn {
-                            NSWorkspace.shared.open(URL(string: "https://github.com/TedInVR/InjectZ/releases/latest")!)
-                        }
-                        return
-                    }
-                    alert.messageText = valid ? "Inject Z is up to date" : "Could not read the release version"
-                    alert.informativeText = "Installed version: \(current). Latest published tag: \(tag)."
-                } else {
-                    alert.messageText = "Could not check for updates"
-                    alert.informativeText = "Check your internet connection and try again. You can also visit github.com/TedInVR/InjectZ/releases."
-                }
-                alert.runModal()
-            }
-        }.resume()
+        InjectZUpdates.shared.check(owner: self)
+    }
+    @objc func toggleAutomaticInjectZUpdates(_ sender: NSMenuItem) {
+        InjectZUpdates.shared.setAutomatic(sender)
     }
 
     @objc func showInjectZAbout(_ sender: Any?) {
@@ -228,6 +198,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let updateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForInjectZUpdates(_:)), keyEquivalent: "")
         updateItem.target = self
         appMenu.addItem(updateItem)
+        let automaticItem = NSMenuItem(title: "Automatically Update While Closed", action: #selector(toggleAutomaticInjectZUpdates(_:)), keyEquivalent: "")
+        automaticItem.target = self; automaticItem.state = InjectZUpdates.automatic ? .on : .off
+        appMenu.addItem(automaticItem)
         let audioItem = NSMenuItem(title: "Audio Alerts…", action: #selector(InjectZAudioAlerts.showSettings), keyEquivalent: "")
         audioItem.target = InjectZAudioAlerts.shared
         appMenu.addItem(audioItem)
@@ -968,7 +941,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         confirm.informativeText = "Working album: InjectZ-\(id)\nOriginal for output: \(photo.lastPathComponent)\n\nNo new images will be imported. Confirm that the original is correct and that Photos has this exact working album. The app will attempt automatic RIGHT selection after resuming."
         confirm.addButton(withTitle: "Resume")
         confirm.addButton(withTitle: "Cancel")
-        guard confirm.runModal() == .alertFirstButtonReturn else { return }
+        guard confirm.runModal() == .alertFirstButtonReturn else {
+                    self.execute(["--discard-job", job]) { _ in }; return
+                }
         guard checkReframePermission() else { return }
         let guardURL = reframeDir.appendingPathComponent("LibraryGuard")
         guard FileManager.default.isExecutableFile(atPath: guardURL.path) else {
@@ -1790,6 +1765,7 @@ final class InjectZOutputPreviewController: NSWindowController {
     }
 }
 
+let injectZUpdateLockDescriptor = injectZStartupUpdateLock()
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate
@@ -2172,4 +2148,117 @@ final class InjectZSupportPanel: NSObject {
             if let panel = supportWindow { alert.beginSheetModal(for: panel, completionHandler: nil) }
         }
     }
+}
+
+
+
+// Native source-update controls. Download/build/sign happen off the main thread.
+final class InjectZUpdates {
+    static let shared = InjectZUpdates()
+    private let root = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("InjectZ")
+    private var checking = false
+    static var automatic: Bool {
+        let file = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("InjectZ/Updates/preferences.json")
+        guard let data = try? Data(contentsOf: file), let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { return true }
+        return object["automatic"] as? Bool ?? false
+    }
+    private var python: URL? {
+        ["Runtime/python/bin/python3", "Development/IW3/python/bin/python"].map { root.appendingPathComponent($0) }.first { FileManager.default.isExecutableFile(atPath: $0.path) }
+    }
+    private var helper: URL { root.appendingPathComponent("Development/Updater/injectz_update.py") }
+    private func show(_ title: String, _ message: String) {
+        let alert = NSAlert(); alert.messageText = title; alert.informativeText = message; alert.runModal()
+    }
+    private func execute(_ arguments: [String], completion: @escaping ([String: Any]) -> Void) {
+        guard let python, FileManager.default.fileExists(atPath: helper.path) else {
+            completion(["error": "Update components are missing. Run Setup/ENABLE_APP_UPDATES.command from the current GitHub source once. Your installed models and settings are retained."]); return
+        }
+        let path = helper, base = root, appPath = Bundle.main.bundleURL.path
+        DispatchQueue.global(qos: .utility).async {
+            let process = Process(), output = Pipe()
+            process.executableURL = python
+            process.arguments = [path.path, "--root", base.path, "--app", appPath] + arguments
+            process.standardOutput = output; process.standardError = FileHandle.nullDevice
+            do {
+                try process.run()
+                let data = output.fileHandleForReading.readDataToEndOfFile(); process.waitUntilExit()
+                let result = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? ["error": "Could not read updater output. See ~/InjectZ/Updates/update.log."]
+                DispatchQueue.main.async { completion(result) }
+            } catch { DispatchQueue.main.async { completion(["error": error.localizedDescription]) } }
+        }
+    }
+    func register() {
+        execute(["--register"]) { result in
+            if let error = result["error"] as? String { NSLog("Inject Z updater registration: %@", error) }
+        }
+    }
+    func setAutomatic(_ item: NSMenuItem) {
+        let value = item.state != .on
+        execute(["--set-automatic", value ? "yes" : "no"]) { result in
+            if let error = result["error"] as? String { self.show("Could not change automatic updates", error) }
+            else { item.state = value ? .on : .off }
+        }
+    }
+    private func busy(_ owner: AppDelegate) -> Bool {
+        if owner.convertButton?.isEnabled == false { return true }
+        if let editor = owner.sharpDepthEditor, editor.task.isRunning { return true }
+        return false
+    }
+    func check(owner: AppDelegate) {
+        if checking { return }
+        checking = true
+        execute(["--check"]) { result in
+            self.checking = false
+            if let error = result["error"] as? String { self.show("Could not check for updates", error); return }
+            guard result["available"] as? Bool == true, let version = result["version"] as? String else {
+                self.show("Inject Z is up to date", "Installed version: \(result["current"] as? String ?? "unknown"). Automatic updates install only while Inject Z and its engine/editor workers are closed."); return
+            }
+            let alert = NSAlert(); alert.messageText = "Inject Z \(version) is available"
+            alert.informativeText = "Download, verify and build the new app locally, preserving the current signing identity, models and settings. A successful build can be installed after closing Inject Z. This may take a few minutes."
+            alert.addButton(withTitle: "Download and Prepare"); alert.addButton(withTitle: "Later")
+            guard alert.runModal() == .alertFirstButtonReturn else { return }
+            if self.busy(owner) { self.show("Finish your work first", "Finish the conversion and save/close the depth editor before updating."); return }
+            self.checking = true; owner.statusLabel.stringValue = "Preparing update — downloading, building and verifying…"
+            self.execute(["--prepare"]) { prepared in
+                self.checking = false; owner.statusLabel.stringValue = "Update preparation finished."
+                if let error = prepared["error"] as? String { self.show("The installed app was not changed", error); return }
+                guard let job = prepared["job"] as? String else { self.show("Inject Z is up to date", "No installation is needed."); return }
+                if self.busy(owner) {
+                    self.execute(["--discard-job", job]) { _ in }
+                    self.show("Finish your work first", "The download was discarded. Finish your work, then check again. No running work was stopped."); return
+                }
+                let confirm = NSAlert(); confirm.messageText = "Install and relaunch Inject Z?"
+                confirm.informativeText = "The replacement is built and verified. Program files will be backed up. Models, environments, preferences and saved sessions remain in place."
+                confirm.addButton(withTitle: "Install and Relaunch"); confirm.addButton(withTitle: "Later")
+                guard confirm.runModal() == .alertFirstButtonReturn else {
+                    self.execute(["--discard-job", job]) { _ in }; return
+                }
+                guard let python = self.python else { return }
+                let process = Process(); process.executableURL = python
+                process.arguments = [job + "/apply.py", "--root", self.root.path, "--app", Bundle.main.bundleURL.path, "--finish", job, "--wait-pid", String(ProcessInfo.processInfo.processIdentifier), "--reopen"]
+                process.standardOutput = FileHandle.nullDevice; process.standardError = FileHandle.nullDevice
+                do { try process.run(); NSApp.terminate(nil) }
+                catch { self.show("Could not start installation", error.localizedDescription) }
+            }
+        }
+    }
+}
+
+// Share the lock for this entire native process. Installation takes it exclusively.
+func injectZStartupUpdateLock() -> Int32 {
+    let directory = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("InjectZ/Updates")
+    try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    let descriptor = Darwin.open(directory.appendingPathComponent("install.lock").path, O_CREAT | O_RDWR | O_CLOEXEC, mode_t(0o600))
+    guard descriptor >= 0 else { return -1 }
+    if flock(descriptor, LOCK_SH | LOCK_NB) == 0 { return descriptor }
+    let deadline = Date().addingTimeInterval(120)
+    while Date() < deadline {
+        usleep(200_000)
+        if flock(descriptor, LOCK_SH | LOCK_NB) == 0 {
+            flock(descriptor, LOCK_UN); Darwin.close(descriptor)
+            let reopen = Process(); reopen.executableURL = URL(fileURLWithPath: "/usr/bin/open"); reopen.arguments = ["-n", Bundle.main.bundleURL.path]
+            try? reopen.run(); exit(0)
+        }
+    }
+    Darwin.close(descriptor); exit(1)
 }

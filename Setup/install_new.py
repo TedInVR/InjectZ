@@ -18,6 +18,8 @@ def copy_sources(repo, root):
         if not (repo / directory).is_dir():
             raise RuntimeError(f'Incomplete repository: missing {directory}')
     shutil.copy2(repo / 'App/InjectZ.swift', root / 'InjectZ.swift')
+    (root/'Development/Updater').mkdir(parents=True,exist_ok=True)
+    shutil.copy2(repo/'Setup/injectz_update.py',root/'Development/Updater/injectz_update.py')
     for file in (repo / 'SHARP').glob('*.py'):
         shutil.copy2(file, root / file.name)
     reframe = root / 'Development/Reframe'
@@ -133,3 +135,4 @@ if __name__ == '__main__':
     except Exception as error:
         print('\nSETUP STOPPED:', error, file=sys.stderr)
         sys.exit(1)
+

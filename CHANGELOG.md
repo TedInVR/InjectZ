@@ -1,5 +1,13 @@
 # Change history
 
+## 0.3.1 source-update candidate — 2026-10-24
+
+- In-app Check for Updates now prepares and verifies the update instead of opening a release page.
+- Added Automatically Update While Closed and a per-user 15-minute LaunchAgent.
+- Commit-pinned downloads, payload checksums, local build/sign verification, backup and rollback.
+- Preserve models, runtimes, custom IW3 settings, saved editor sessions, existing icon and signing identity.
+- One-time activation command for existing installations. Native Mac compilation and scheduled operation still need device verification.
+
 ## Unreleased — 2026-10-12
 
 - Added 18 supplied M4A completion tracks to the existing collection, bringing the bundled file count to 46. Lyrics-only text files are excluded.
@@ -34,3 +42,4 @@
 ## Unreleased — 2026-10-18
 
 - Added Help → Support Inject Z with optional Ko-fi, PayPal and Patreon links. No unsolicited prompts or changes to conversion features.
+

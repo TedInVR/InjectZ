@@ -16,3 +16,21 @@ Release notes:
 For future versions, increase VERSION, both plist version values in BUILD_SOURCE.command and UPDATE_EXISTING.command, the update checker User-Agent/fallback version, source update backup/log labels, archive filename and matching GitHub tag. Never change the app's bundle identifier or established signing identity as part of ordinary updates.
 
 A later automatic updater needs authenticated signed update archives, a consistent public signing strategy and migration of external scripts. This source-based release checker does not execute network-downloaded code.
+
+
+## Source-update channel (0.3.1 candidate)
+
+Setup/UpdateRelease.json and Setup/UpdateManifest.json now define a source-update
+channel on main. This is separate from the older published 0.3.0 binary/source
+release ZIP and does not imply a stable/notarized binary release. Do not mark the
+candidate stable until Mac build, signing, conversions and scheduled execution
+are verified. Clients fetch a pinned GitHub commit, verify payload hashes and
+build/sign locally using their existing identity; this is not a signed binary
+feed. No developer signing keys are included or transmitted.
+
+For later source updates, bump UpdateRelease.json and both version fields in
+BUILD_SOURCE.command/AppBundleMetadata.json, regenerate UpdateManifest.json from
+all managed source/assets and publish the changes in one commit. The updater
+updates only mapped program files. Keep user settings, models, environments and
+sessions out of the manifest. A SHA-256 digest is used for new/changed text; the
+initial manifest can verify unchanged assets against their pinned Git blob IDs.
