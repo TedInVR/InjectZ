@@ -1,3 +1,9 @@
+# 0.3.3 — Reframe cleanup
+
+- After verified exports, select and verify the exact two generated photo IDs, recheck the working library, delete those temporary copies via Photos, verify removal, delete the empty album and quit Photos. Recently Deleted is not emptied. Failed conversions retain recovery copies.
+- Cleanup failure is reported with its session log instead of silently claiming success.
+- Native AppleScript compilation and Photos UI behavior still require Mac verification.
+
 # 0.3.2 — Reframe working-library verification
 
 - Resolve the ~/InjectZ symlink before comparing the working library path with Photos open files. Fixes false rejection after moving Inject Z to /Applications. The exact working-library check remains required before import.

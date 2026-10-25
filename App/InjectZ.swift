@@ -1626,7 +1626,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         : "Reframe complete: \(formats.count) format(s) — \(lastOutput!.lastPathComponent)"
                     completed = true
                     if !removeCompletedWorkingAlbum(album: album, work: work) {
-                        statusLabel.stringValue += " Working Photos album retained; remove it manually if desired."
+                        statusLabel.stringValue += " Conversion saved, but Photos cleanup/quit was not confirmed; see RemoveCompletedAlbum.log in the working session."
                     }
                     revealOutput(lastOutput!, openImage: true)
                     InjectZAudioAlerts.shared.playCompletion()
@@ -1665,7 +1665,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard guardTask.terminationStatus == 0 else { return false }
             let cleanup = Process()
             cleanup.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-            cleanup.arguments = [script.path, album]
+            cleanup.arguments = [script.path, album, guardURL.path]
             let log = work.appendingPathComponent("RemoveCompletedAlbum.log")
             FileManager.default.createFile(atPath: log.path, contents: nil)
             guard let handle = FileHandle(forWritingAtPath: log.path) else { return false }
