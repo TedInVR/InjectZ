@@ -1,3 +1,8 @@
+# 0.3.2 — Reframe working-library verification
+
+- Resolve the ~/InjectZ symlink before comparing the working library path with Photos open files. Fixes false rejection after moving Inject Z to /Applications. The exact working-library check remains required before import.
+- Published through the existing source-update channel. Native macOS compilation and Reframe operation require device verification.
+
 # Change history
 
 ## 0.3.1 source-update candidate — 2026-10-24

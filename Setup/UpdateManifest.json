@@ -1,5 +1,5 @@
 {
-  "version": "0.3.1",
+  "version": "0.3.2",
   "format": 1,
   "files": {
     "App/InjectZ.swift": {
@@ -240,7 +240,7 @@
     },
     "Reframe/LibraryGuard.swift": {
       "algorithm": "git-blob-sha1",
-      "digest": "b97efe45e18c61015a0eef34c9c7eec300c3089e"
+      "digest": "d0f95879810954a902969de42d8d81f9c99e5817"
     },
     "Reframe/ReadSelectedFilename.applescript": {
       "algorithm": "git-blob-sha1",
@@ -328,7 +328,7 @@
     },
     "Setup/UpdateRelease.json": {
       "algorithm": "sha256",
-      "digest": "76293850ccf6eb9d31aa89e59e695ccf1db9fa86449d6bd60e714424156a371f"
+      "digest": "b8244591312f0cdd5a92a60023e7926c936e0e4417f037f3a7f79c8385906a12"
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",

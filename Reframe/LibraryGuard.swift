@@ -2,10 +2,11 @@ import Cocoa
 import Darwin
 
 // Fail-closed guard. Never imports unless the running Photos process is observed
-// accessing a file inside the exact working library bundle.
+// accessing a file inside the exact working library bundle. Resolve the installed
+// ~/InjectZ symlink before comparing with the physical paths reported by lsof.
 let fm = FileManager.default
 let home = fm.homeDirectoryForCurrentUser
-let work = home.appendingPathComponent("InjectZ/Development/InjectZ Working Library.photoslibrary").standardizedFileURL
+let work = home.appendingPathComponent("InjectZ/Development/InjectZ Working Library.photoslibrary").standardizedFileURL.resolvingSymlinksInPath()
 func fail(_ message: String) -> Never { fputs("LIBRARY GUARD: \(message)\n", stderr); exit(2) }
 guard fm.fileExists(atPath: work.path) else { fail("Working library missing: \(work.path)") }
 let photos = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Photos")
