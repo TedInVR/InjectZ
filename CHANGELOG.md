@@ -1,3 +1,8 @@
+# 0.3.4 — Conversion previews
+
+- Open the converted image without automatically revealing it in Finder. The Show Result in Finder button still reveals the result.
+- Native macOS verification remains necessary.
+
 # 0.3.3 — Reframe cleanup
 
 - After verified exports, select and verify the exact two generated photo IDs, recheck the working library, delete those temporary copies via Photos, verify removal, delete the empty album and quit Photos. Recently Deleted is not emptied. Failed conversions retain recovery copies.

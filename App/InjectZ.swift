@@ -1690,7 +1690,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 NSRunningApplication.current.activate(options: [])
                 return
             }
-            NSWorkspace.shared.activateFileViewerSelecting([url])
             if openImage {
                 // Quick Look is presented directly. No Finder focus test, simulated
                 // Space key, or extra Accessibility/Automation approval is needed.
@@ -1699,10 +1698,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         self.outputPreviewController = InjectZOutputPreviewController()
                     }
                     if self.outputPreviewController?.showImage(url) != true {
-                        self.statusLabel.stringValue = "Image saved and selected in Finder; press Space to view it."
+                        self.statusLabel.stringValue = "Image saved, but its preview could not be opened. Use Show Result in Finder to find it."
                     }
                 }
             } else {
+                NSWorkspace.shared.activateFileViewerSelecting([url])
                 _ = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder")
                     .first?.activate(options: [.activateAllWindows])
             }

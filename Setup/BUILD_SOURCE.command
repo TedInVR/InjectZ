@@ -31,8 +31,8 @@ cp "$repo/Setup/injectz_update.py" "$stage/Development/Updater/"
 <key>CFBundleDisplayName</key><string>Inject Z</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleIconFile</key><string>InjectZ</string>
-<key>CFBundleShortVersionString</key><string>0.3.3</string>
-<key>CFBundleVersion</key><string>0.3.3</string>
+<key>CFBundleShortVersionString</key><string>0.3.4</string>
+<key>CFBundleVersion</key><string>0.3.4</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>NSHighResolutionCapable</key><true/>
 <key>NSAppleEventsUsageDescription</key><string>Inject Z controls Photos to create and export stereo working images.</string>
