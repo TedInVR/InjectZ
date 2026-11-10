@@ -4,6 +4,7 @@ InjectZ SHARP/metal-gauss renderer helper v0.2.5
 Known-good automatic stereo-window algorithm integrated with normal InjectZ output.
 """
 import argparse
+import math
 from pathlib import Path
 import numpy as np
 import torch
@@ -12,7 +13,7 @@ from scipy import ndimage
 
 from metal_gauss.io import load_ply
 from metal_gauss.render_path import (
-    frame_cloud, intrinsics, world_to_camera, render_frames, write_png
+    frame_cloud, intrinsics, world_to_camera, render_frames, write_png, fov_from_photo
 )
 
 def robust_foreground_depth(sp, K, W, H):
@@ -129,8 +130,13 @@ if not PLY.exists():
 
 BASELINE = a.baseline
 
+# Apple's SHARP loader applies EXIF rotations 3, 6 and 8 before prediction.
+# Rotations 6/8 exchange the axes. Use the same upright dimensions when
+# rendering, and use a horizontal FOV for those dimensions below.
 with Image.open(PHOTO) as im:
-    src_w, src_h = im.size
+    raw_w, raw_h = im.size
+    orientation = im.getexif().get(274, 1)
+    src_w, src_h = (raw_h, raw_w) if orientation in (6, 8) else (raw_w, raw_h)
 
 if a.eye_width is None:
     W, H = src_w, src_h
@@ -164,12 +170,23 @@ def render_frames_with_scene_distance(sp, views, K, W, H, background, backend):
 print(f"SHARP scene-aware far clipping distance: {injectz_far_clip:.4f}", flush=True)
 
 
+# metal-gauss computes horizontal FOV from stored pixel dimensions. For an
+# EXIF-rotated image retain the same focal length in pixels but derive the FOV
+# using the upright width, matching the dimensions SHARP predicted from.
+requested_fov = None
+if orientation in (6, 8):
+    raw_fov, focal_35mm = fov_from_photo(str(PHOTO))
+    focal_px = raw_w / (2.0 * math.tan(math.radians(raw_fov) / 2.0))
+    requested_fov = math.degrees(2.0 * math.atan(src_w / (2.0 * focal_px)))
+    print(f"EXIF orientation {orientation}: {raw_w}x{raw_h} -> {src_w}x{src_h}; "
+          f"focal length {focal_35mm:g}mm, upright horizontal FOV {requested_fov:.2f}°", flush=True)
+
 frame_mode, fov, eye, target = frame_cloud(
     means_cpu,
     frame="input",
     up="-y",
     convention="opencv",
-    fov=None,
+    fov=requested_fov,
     like_photo=str(PHOTO),
     depth=None,
     opacities=sp.opacities.detach().cpu(),

@@ -1,5 +1,5 @@
 {
-  "version": "0.3.4",
+  "version": "0.3.5",
   "format": 1,
   "files": {
     "App/InjectZ.swift": {
@@ -280,7 +280,7 @@
     },
     "SHARP/injectz_sharp_render.py": {
       "algorithm": "git-blob-sha1",
-      "digest": "8e3bbddb8d5cf51a8df5dc7f69da243639d2ae39"
+      "digest": "a38568e36922b89aaed4a549098becd516f97185"
     },
     "SHARPDepthEditor/background_repair.py": {
       "algorithm": "git-blob-sha1",
@@ -328,7 +328,7 @@
     },
     "Setup/UpdateRelease.json": {
       "algorithm": "sha256",
-      "digest": "b1226ca664e7f6384c791754847e8582825c8c587be1741bdccdbefe8661e003"
+      "digest": "413ea09fbe3aa16a48633a118c6eeaa72fbd376e8f91eec619fdd7318b335a78"
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",

@@ -1,3 +1,8 @@
+# 0.3.5 — Correct SHARP portrait orientation
+
+- Match SHARP prediction orientation and horizontal camera field of view for photos with EXIF rotation 6 or 8. This fixes rendering landscape frames around portrait reconstructions. Existing reconstructions remain usable.
+- Native Mac rendering verification remains necessary.
+
 # 0.3.4 — Conversion previews
 
 - Open the converted image without automatically revealing it in Finder. The Show Result in Finder button still reveals the result.
