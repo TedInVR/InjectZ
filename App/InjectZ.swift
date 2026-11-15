@@ -52,7 +52,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var iw3ModelLabel: NSTextField!
     var iw3ModelPopup: NSPopUpButton!
     var formatButtons: [NSButton] = []
-    let formatIDs = ["Parallel", "Crossview", "Anaglyph_FullColor", "Anaglyph_HalfColor", "Anaglyph_Dubois"]
+    let formatIDs = ["Parallel", "Crossview", "Anaglyph_FullColor", "Anaglyph_HalfColor", "Anaglyph_Dubois", "Left_Right_Left", "Parallel_Over_Crossview"]
+    var borderPopup: NSPopUpButton!
+    var cornersPopup: NSPopUpButton!
+    func finishingArguments() -> [String] {
+        let borders = [0, 1, 2, 5, 10]
+        let corners = [0, 2, 5, 10, 20]
+        return ["--border-percent", String(borders[max(0, borderPopup.indexOfSelectedItem)]),
+                "--corner-percent", String(corners[max(0, cornersPopup.indexOfSelectedItem)])]
+    }
     func selectedFormats() -> [String] { zip(formatButtons, formatIDs).compactMap { $0.0.state == .on ? $0.1 : nil } }
     var advancedButton: NSButton!
     var advancedPanel: NSPanel?
@@ -265,7 +273,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func buildUI() {
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in self?.sharpDepthEditor?.stop() }
-        let frame = NSRect(x: 0, y: 0, width: 600, height: 470)
+        let frame = NSRect(x: 0, y: 0, width: 600, height: 580)
         window = NSWindow(contentRect: frame,
                           styleMask: [.titled, .closable, .miniaturizable],
                           backing: .buffered, defer: false)
@@ -394,6 +402,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusLabel.lineBreakMode = .byTruncatingMiddle
         statusLabel.frame = NSRect(x: 30, y: 35, width: 540, height: 28)
         c.addSubview(statusLabel)
+
+        // Make room for additional output controls below the format list.
+        for view in c.subviews where view.frame.origin.y >= 180 {
+            view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + 110))
+        }
+        for (index, title) in ["Left / Right / Left", "Parallel above Crossview"].enumerated() {
+            let button = NSButton(checkboxWithTitle: title, target: nil, action: nil)
+            button.frame = NSRect(x: index == 0 ? 145 : 355, y: 272, width: 220, height: 24)
+            c.addSubview(button)
+            formatButtons.append(button)
+        }
+        addLabel("Black border", 30, 234)
+        borderPopup = NSPopUpButton(frame: NSRect(x: 145, y: 230, width: 150, height: 30))
+        borderPopup.addItems(withTitles: ["None", "1%", "2%", "5%", "10%"])
+        borderPopup.toolTip = "Black border added around each finished eye; percentage of the shorter image side."
+        c.addSubview(borderPopup)
+        addLabel("Corners", 310, 234, 75)
+        cornersPopup = NSPopUpButton(frame: NSRect(x: 385, y: 230, width: 185, height: 30))
+        cornersPopup.addItems(withTitles: ["Square", "Small (2%)", "Medium (5%)", "Large (10%)", "View-Master (20%)"])
+        cornersPopup.toolTip = "Rounds each eye against black after conversion."
+        c.addSubview(cornersPopup)
 
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -884,7 +913,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         task.executableURL = python
         let prefix = source.deletingPathExtension().path + "_InjectZ_" + engine
         task.arguments = [helper.path, parallel.path, "--output-prefix", prefix,
-                          "--depth-token", depth, "--formats"] + formats
+                          "--depth-token", depth] + finishingArguments() + ["--formats"] + formats
         let log = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("InjectZ-formats-" + UUID().uuidString + ".log")
         FileManager.default.createFile(atPath: log.path, contents: nil)
         guard let handle = FileHandle(forWritingAtPath: log.path) else { return nil }
@@ -1604,7 +1633,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             finisher.executableURL = python
             var finishArguments = [dir.appendingPathComponent("FinishSingleRight.py").path, work.path, source.path,
-                                   "--pan", String(format: "%.4f", reframeAppliedPan), "--formats"] + formats
+                                   "--pan", String(format: "%.4f", reframeAppliedPan)] + finishingArguments() + ["--formats"] + formats
             if allowWindowViolations.state == .on { finishArguments.append("--allow-window-violations") }
             finisher.arguments = finishArguments
             let finishLog = Pipe()

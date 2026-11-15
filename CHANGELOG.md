@@ -1,3 +1,9 @@
+# 0.3.6 — More stereo layouts and finishing options
+
+- Add left/right/left and stacked parallel/crossview formats.
+- Add optional black borders and rounded corners after conversion.
+- Avoid SHARP window-shift edge artifacts by cropping to the shared view.
+
 # 0.3.5 — Correct SHARP portrait orientation
 
 - Match SHARP prediction orientation and horizontal camera field of view for photos with EXIF rotation 6 or 8. This fixes rendering landscape frames around portrait reconstructions. Existing reconstructions remain usable.

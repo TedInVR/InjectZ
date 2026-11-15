@@ -206,8 +206,11 @@ else:
     fx = float(K[0,0])
     foreground_disparity = fx * BASELINE / zc
     per_eye_shift = (foreground_disparity + a.margin_px) / 2.0
-    K_left = shifted_K(K, -per_eye_shift)
-    K_right = shifted_K(K, per_eye_shift)
+    # Render within the input camera's field of view. Moving the principal
+    # point exposes extrapolated splats beyond that field and can produce
+    # large blurred or white strips at the image edges.
+    K_left = K
+    K_right = K
 
 R = torch.eye(3)
 left_center = torch.tensor([-BASELINE / 2.0, 0.0, 0.0], dtype=torch.float32)
@@ -245,6 +248,24 @@ if a.soften_depth_edges and a.edge_soften_strength > 0:
     left_img.save(left_path); right_img.save(right_path)
     print(f"Edge radius {a.edge_soften_radius:.2f}px; strength {a.edge_soften_strength:.0%}; "
           f"affected masks L {np.mean(left_mask > 0):.2%}, R {np.mean(right_mask > 0):.2%}", flush=True)
+
+if not a.allow_window_violations:
+    # A whole-pixel shift avoids resampling. Rounding up retains at least the
+    # requested stereo-window margin. The two crops are the common overlap
+    # of the shifted views, so neither eye contains extrapolated edge pixels.
+    crop_shift = math.ceil(per_eye_shift)
+    if crop_shift < 0 or 2 * crop_shift >= W:
+        raise RuntimeError("Stereo-window protection would crop the entire image. "
+                           "Reduce the stereo baseline or allow window violations.")
+    if crop_shift:
+        old_left, old_right = left_img, right_img
+        left_img = old_left.crop((2 * crop_shift, 0, W, H))
+        right_img = old_right.crop((0, 0, W - 2 * crop_shift, H))
+        old_left.close(); old_right.close()
+        W -= 2 * crop_shift
+        left_img.save(left_path); right_img.save(right_path)
+        print(f"Stereo-window overlap crop: {crop_shift}px from each side; "
+              f"remaining eye width {W}px", flush=True)
 
 label = "Parallel" if a.format == "parallel" else "Crossview"
 sbs_path = OUTDIR / f"{PHOTO.stem}_{label}_InjectZ_SHARP_Baseline{token}.png"

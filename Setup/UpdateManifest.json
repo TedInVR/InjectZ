@@ -1,10 +1,10 @@
 {
-  "version": "0.3.5",
+  "version": "0.3.6",
   "format": 1,
   "files": {
     "App/InjectZ.swift": {
       "algorithm": "sha256",
-      "digest": "572ca3a3a9054b01a2714d367900e8d4887b0635b09918ba327c505c07477fa6"
+      "digest": "74eb41210480e43fbd058897f5f0b5d4916b82b008b5d8c86c19c29787eaf025"
     },
     "Assets/AudioAlerts/Inject Z Conversion Complete - usesuno.com.m4a": {
       "algorithm": "git-blob-sha1",
@@ -231,8 +231,8 @@
       "digest": "c060d61f2fb1ce1df57c104cfd3ac30ead966ee3"
     },
     "Reframe/FinishSingleRight.py": {
-      "algorithm": "git-blob-sha1",
-      "digest": "8e43dc4cc31f0c78722124dad3cbbd5c6bb20ca2"
+      "algorithm": "sha256",
+      "digest": "56742a147d37d4d5a98be960b725ddd9094e143df6f07a8ff07da37147314bd6"
     },
     "Reframe/ImportWorkingCopies.applescript": {
       "algorithm": "git-blob-sha1",
@@ -259,8 +259,8 @@
       "digest": "5486351677b52ca963446d587d9238e0e9e87318"
     },
     "Reframe/SharedStereoFormats.py": {
-      "algorithm": "git-blob-sha1",
-      "digest": "bcd79a21764768e0d4ea651688c3122398245ffa"
+      "algorithm": "sha256",
+      "digest": "20eb605908098e1e1c64df207f361e5c5f552afd093c062214f932208c9fbc3d"
     },
     "Reframe/StereoAssembler.py": {
       "algorithm": "git-blob-sha1",
@@ -279,8 +279,8 @@
       "digest": "0356382e53c4f3e8cd90775f1ecf6dfd26f3ab29"
     },
     "SHARP/injectz_sharp_render.py": {
-      "algorithm": "git-blob-sha1",
-      "digest": "a38568e36922b89aaed4a549098becd516f97185"
+      "algorithm": "sha256",
+      "digest": "a67563458cc4af175c1f149401b0e0273d8b0eb10abbd8145904b1cf12b48e31"
     },
     "SHARPDepthEditor/background_repair.py": {
       "algorithm": "git-blob-sha1",
@@ -328,7 +328,7 @@
     },
     "Setup/UpdateRelease.json": {
       "algorithm": "sha256",
-      "digest": "413ea09fbe3aa16a48633a118c6eeaa72fbd376e8f91eec619fdd7318b335a78"
+      "digest": "203d34ab87ff3381eb2715e153ebc0bb529aa822586d5a1cc9d2a003752303e3"
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",
