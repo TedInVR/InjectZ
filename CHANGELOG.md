@@ -1,3 +1,7 @@
+# 0.3.7 — Named conversion presets
+
+- Save, recall, replace, and delete named conversion settings on the main screen.
+
 # 0.3.6 — More stereo layouts and finishing options
 
 - Add left/right/left and stacked parallel/crossview formats.

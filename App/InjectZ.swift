@@ -55,6 +55,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let formatIDs = ["Parallel", "Crossview", "Anaglyph_FullColor", "Anaglyph_HalfColor", "Anaglyph_Dubois", "Left_Right_Left", "Parallel_Over_Crossview"]
     var borderPopup: NSPopUpButton!
     var cornersPopup: NSPopUpButton!
+    var presetPopup: NSPopUpButton!
+    let presetsKey = "InjectZConversionPresetsV1"
     func finishingArguments() -> [String] {
         let borders = [0, 1, 2, 5, 10]
         let corners = [0, 2, 5, 10, 20]
@@ -93,7 +95,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         edgeStrength?.isEnabled = enabled
     }
     @objc func showSharpEdges() {
-        if let panel = sharpEdgesPanel { panel.makeKeyAndOrderFront(nil); return }
+        ensureSharpEdges()
+        sharpEdgesPanel?.makeKeyAndOrderFront(nil)
+    }
+    func ensureSharpEdges() {
+        if sharpEdgesPanel != nil { return }
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 500, height: 300),
                             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         panel.title = "SHARP Edge Softening"
@@ -121,7 +127,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         content.addSubview(hint)
         sharpEdgesPanel = panel
         edgeValuesChanged()
-        panel.makeKeyAndOrderFront(nil)
     }
 
     var sharpDepthSelection = 3
@@ -273,7 +278,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func buildUI() {
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in self?.sharpDepthEditor?.stop() }
-        let frame = NSRect(x: 0, y: 0, width: 600, height: 580)
+        let frame = NSRect(x: 0, y: 0, width: 600, height: 635)
         window = NSWindow(contentRect: frame,
                           styleMask: [.titled, .closable, .miniaturizable],
                           backing: .buffered, defer: false)
@@ -424,8 +429,143 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         cornersPopup.toolTip = "Rounds each eye against black after conversion."
         c.addSubview(cornersPopup)
 
+        for view in c.subviews {
+            view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + 55))
+        }
+        addLabel("Preset", 30, 26, 70)
+        presetPopup = NSPopUpButton(frame: NSRect(x: 98, y: 21, width: 205, height: 30))
+        presetPopup.target = self
+        presetPopup.action = #selector(loadPreset)
+        c.addSubview(presetPopup)
+        let savePresetButton = NSButton(title: "Save as a Preset…", target: self, action: #selector(savePreset))
+        savePresetButton.frame = NSRect(x: 310, y: 21, width: 165, height: 30)
+        c.addSubview(savePresetButton)
+        let deletePresetButton = NSButton(title: "Delete…", target: self, action: #selector(deletePreset))
+        deletePresetButton.frame = NSRect(x: 478, y: 21, width: 92, height: 30)
+        c.addSubview(deletePresetButton)
+        refreshPresets()
+
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func allPresets() -> [String: [String: Any]] {
+        UserDefaults.standard.dictionary(forKey: presetsKey) as? [String: [String: Any]] ?? [:]
+    }
+
+    func refreshPresets(select name: String? = nil) {
+        presetPopup.removeAllItems()
+        presetPopup.addItem(withTitle: "Choose a preset…")
+        presetPopup.addItems(withTitles: allPresets().keys.sorted { $0.localizedStandardCompare($1) == .orderedAscending })
+        if let name = name { presetPopup.selectItem(withTitle: name) }
+    }
+
+    @objc func savePreset() {
+        let alert = NSAlert()
+        alert.messageText = "Save as a Preset"
+        alert.informativeText = "Name this combination of conversion and output settings."
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 26))
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Save")
+        alert.addButton(withTitle: "Cancel")
+        alert.window.initialFirstResponder = field
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        let name = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty && name != "Choose a preset…" else {
+            statusLabel.stringValue = "Enter a name for the preset."; return
+        }
+        var presets = allPresets()
+        if presets[name] != nil {
+            let confirm = NSAlert()
+            confirm.messageText = "Replace preset ‘\(name)’?"
+            confirm.informativeText = "Its saved settings will be replaced with the current settings."
+            confirm.addButton(withTitle: "Replace")
+            confirm.addButton(withTitle: "Cancel")
+            guard confirm.runModal() == .alertFirstButtonReturn else { return }
+        }
+        ensureAdvanced()
+        ensureSharpEdges()
+        var extra: [String: String] = [:]
+        for (flag, control, _) in extraIW3Controls {
+            if let popup = control as? NSPopUpButton { extra[flag] = popup.titleOfSelectedItem ?? "" }
+            else if let field = control as? NSTextField { extra[flag] = field.stringValue }
+        }
+        presets[name] = [
+            "engine": enginePopup.indexOfSelectedItem,
+            "depth": depthPopup.indexOfSelectedItem,
+            "customDepth": customSharpDepth,
+            "model": iw3ModelPopup.titleOfSelectedItem ?? "DepthPro",
+            "formats": selectedFormats(),
+            "border": borderPopup.indexOfSelectedItem,
+            "corners": cornersPopup.indexOfSelectedItem,
+            "keepEyes": keepEyes.state == .on,
+            "allowWindow": allowWindowViolations.state == .on,
+            "soften": softenSharpEdges?.state == .on,
+            "edgeRadius": edgeRadius?.doubleValue ?? 2,
+            "edgeStrength": edgeStrength?.doubleValue ?? 0.35,
+            "method": methodPopup.titleOfSelectedItem ?? "forward_inpaint",
+            "convergence": convergenceField.stringValue,
+            "foreground": foregroundField.stringValue,
+            "preserveBorder": preserveBorder.state == .on,
+            "depthAA": depthAA.state == .on,
+            "extraIW3": extra
+        ]
+        UserDefaults.standard.set(presets, forKey: presetsKey)
+        refreshPresets(select: name)
+        statusLabel.stringValue = "Preset saved: \(name)"
+    }
+
+    @objc func loadPreset() {
+        guard presetPopup.indexOfSelectedItem > 0,
+              let name = presetPopup.titleOfSelectedItem, let p = allPresets()[name],
+              let engine = p["engine"] as? Int, (0..<enginePopup.numberOfItems).contains(engine) else { return }
+        ensureAdvanced()
+        ensureSharpEdges()
+        customSharpDepth = p["customDepth"] as? Double ?? 0.250
+        enginePopup.selectItem(at: engine)
+        engineChanged()
+        if let item = depthPopup.itemArray.first(where: { $0.title.hasPrefix("Custom depth") }) {
+            item.title = String(format: "Custom depth (%.3f)…", customSharpDepth)
+        }
+        if let depth = p["depth"] as? Int, (0..<depthPopup.numberOfItems).contains(depth) { depthPopup.selectItem(at: depth) }
+        if let model = p["model"] as? String, iw3ModelPopup.itemTitles.contains(model) { iw3ModelPopup.selectItem(withTitle: model) }
+        let formats = Set(p["formats"] as? [String] ?? [])
+        for (button, id) in zip(formatButtons, formatIDs) { button.state = formats.contains(id) ? .on : .off }
+        if let index = p["border"] as? Int, (0..<borderPopup.numberOfItems).contains(index) { borderPopup.selectItem(at: index) }
+        if let index = p["corners"] as? Int, (0..<cornersPopup.numberOfItems).contains(index) { cornersPopup.selectItem(at: index) }
+        keepEyes.state = (p["keepEyes"] as? Bool ?? false) ? .on : .off
+        allowWindowViolations.state = (p["allowWindow"] as? Bool ?? false) ? .on : .off
+        softenSharpEdges?.state = (p["soften"] as? Bool ?? false) ? .on : .off
+        edgeRadius?.doubleValue = p["edgeRadius"] as? Double ?? 2
+        edgeStrength?.doubleValue = p["edgeStrength"] as? Double ?? 0.35
+        edgeValuesChanged()
+        if let method = p["method"] as? String, methodPopup.itemTitles.contains(method) { methodPopup.selectItem(withTitle: method) }
+        convergenceField.stringValue = p["convergence"] as? String ?? "0.25"
+        foregroundField.stringValue = p["foreground"] as? String ?? "0"
+        preserveBorder.state = (p["preserveBorder"] as? Bool ?? true) ? .on : .off
+        depthAA.state = (p["depthAA"] as? Bool ?? false) ? .on : .off
+        let extra = p["extraIW3"] as? [String: String] ?? [:]
+        for (flag, control, _) in extraIW3Controls {
+            if let popup = control as? NSPopUpButton {
+                if let value = extra[flag], popup.itemTitles.contains(value) { popup.selectItem(withTitle: value) }
+                else { popup.selectItem(at: 0) }
+            } else if let field = control as? NSTextField { field.stringValue = extra[flag] ?? "" }
+        }
+        statusLabel.stringValue = "Preset loaded: \(name)"
+    }
+
+    @objc func deletePreset() {
+        guard presetPopup.indexOfSelectedItem > 0, let name = presetPopup.titleOfSelectedItem else { return }
+        let alert = NSAlert()
+        alert.messageText = "Delete preset ‘\(name)’?"
+        alert.informativeText = "Your current conversion settings will remain in place."
+        alert.addButton(withTitle: "Delete")
+        alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        var presets = allPresets(); presets.removeValue(forKey: name)
+        UserDefaults.standard.set(presets, forKey: presetsKey)
+        refreshPresets()
+        statusLabel.stringValue = "Preset deleted: \(name)"
     }
 
     @objc func depthChanged(_ sender: NSPopUpButton) {
@@ -595,7 +735,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func showAdvanced() {
-        if let panel = advancedPanel { panel.makeKeyAndOrderFront(nil); return }
+        ensureAdvanced()
+        advancedPanel?.makeKeyAndOrderFront(nil)
+    }
+    func ensureAdvanced() {
+        if advancedPanel != nil { return }
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 410, width: 710, height: 740),
                             styleMask: [.titled, .closable], backing: .buffered, defer: false)
         panel.title = "Advanced IW3 Settings"
@@ -639,7 +783,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         addIW3HelpButton(content, "--depth-aa", 485, 501)
         buildExtraIW3Settings(content)
         advancedPanel = panel
-        panel.makeKeyAndOrderFront(nil)
     }
 
     @objc func choosePhoto() {
