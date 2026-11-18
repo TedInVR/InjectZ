@@ -1,3 +1,7 @@
+# 0.3.15 — Related app descriptions
+
+- Add offline descriptions to the built-in Apps menu when an app is not installed.
+
 # 0.3.14 — Export SHARP view sequences
 
 - Export numbered, lossless, left-to-right PNG views with both endpoints; select up to 60 intermediate views.

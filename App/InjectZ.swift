@@ -1002,14 +1002,63 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             alert.informativeText = "Download the app, or locate it if it is already installed. Inject Z will remember its location."
             alert.addButton(withTitle: "Download from GitHub")
             alert.addButton(withTitle: "Navigate to it")
+            alert.addButton(withTitle: "What is \(id)?")
             alert.addButton(withTitle: "OK")
-            let choice = alert.runModal()
-            if choice == .alertFirstButtonReturn, let url = URL(string: link) { NSWorkspace.shared.open(url) }
-            if choice == .alertSecondButtonReturn { locateBuiltInApp(id) }
+            while true {
+                let choice = alert.runModal()
+                if choice == .alertThirdButtonReturn { showRelatedAppDescription(id); continue }
+                if choice == .alertFirstButtonReturn, let url = URL(string: link) { NSWorkspace.shared.open(url) }
+                if choice == .alertSecondButtonReturn { locateBuiltInApp(id) }
+                break
+            }
         } else {
             alert.informativeText = "This app shortcut points to a missing file. Remove the shortcut or add the app at its new location."
             alert.addButton(withTitle: "OK"); alert.runModal()
         }
+    }
+
+    func showRelatedAppDescription(_ id: String) {
+        let descriptions: [String: String] = [
+            "Ted's Video Tool": """
+            Ted's Video Tool (TVT) helps you work with videos, including 2D and stereoscopic material.
+
+            • Trim, split, join and convert video clips, and upscale video.
+            • Work with audio and subtitles, and inspect media information.
+            • Import disc backups and download online video. Some functions need additional tools.
+            • On Apple Silicon, optional AI restoration can improve video; its engine is installed separately.
+            """,
+            "StereoMask for Mac": """
+            StereoMask helps you frame stereoscopic images and create out-of-frame effects.
+
+            • Adjust the stereo window and create or edit frames with shapes, curves and outlines.
+            • Select foreground objects so they can appear in front of the frame.
+            • Add text, speech bubbles and shadows; preview and export finished images.
+            • Save editable projects and use brushes, lassos, zoom and undo.
+
+            StereoMask is a collaboration between Subbiah Rathinagiri and Theodore Whitten.
+            """,
+            "VM ReSizer": """
+            VM Re-Sizer prepares existing stereo photos for View-Master-style reels.
+
+            • Frame, zoom and position both eyes together while maintaining their alignment.
+            • Fit the whole image or fill the frame, and swap eyes for crossview sources.
+            • Preview the approximate reel frame and export separate left and right images.
+            • Choose full-resolution files or the Image3D-ready size, as JPEG or PNG.
+            """,
+            "Stereo Slideshow": """
+            Stereo Slideshow creates stereoscopic photo and video slideshows with music.
+
+            • Arrange stereo photos and video clips in the order you want.
+            • Add music tracks, titles, stereo captions, fades and optional zoom or pan.
+            • Export side-by-side or red/cyan anaglyph video.
+            • Save a project to resume editing later. Optional local music creation needs an additional engine.
+            """
+        ]
+        let alert = NSAlert()
+        alert.messageText = "What is \(id)?"
+        alert.informativeText = descriptions[id] ?? "Information for this app is not available."
+        alert.addButton(withTitle: "Back")
+        alert.runModal()
     }
 
     func locateBuiltInApp(_ id: String) {
