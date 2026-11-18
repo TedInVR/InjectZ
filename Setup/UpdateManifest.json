@@ -1,10 +1,10 @@
 {
-  "version": "0.3.7",
+  "version": "0.3.8",
   "format": 1,
   "files": {
     "App/InjectZ.swift": {
       "algorithm": "sha256",
-      "digest": "554bf287a29f928d8385a90c294cc4211727da67bfa387fcf3eb2aaf82024ddf"
+      "digest": "fde5a338145c98c75f106d8da64fee5a9601107a4fb3145b1a2c9ec92d91bfdf"
     },
     "Assets/AudioAlerts/Inject Z Conversion Complete - usesuno.com.m4a": {
       "algorithm": "git-blob-sha1",
@@ -275,12 +275,12 @@
       "digest": "f3ee1fcd11d3f1e743f159187ce1bd00d6611e03"
     },
     "SHARP/injectz_engine.py": {
-      "algorithm": "git-blob-sha1",
-      "digest": "0356382e53c4f3e8cd90775f1ecf6dfd26f3ab29"
+      "algorithm": "sha256",
+      "digest": "f079cd6b35e01329c1de5e28aa5b4e9610cbf31816d44242a45627dc3f7c2990"
     },
     "SHARP/injectz_sharp_render.py": {
       "algorithm": "sha256",
-      "digest": "a67563458cc4af175c1f149401b0e0273d8b0eb10abbd8145904b1cf12b48e31"
+      "digest": "b20b9c6268ee9010409426891ad5f5a9188cc8062e95f0188c8555c28d923b50"
     },
     "SHARPDepthEditor/background_repair.py": {
       "algorithm": "git-blob-sha1",
@@ -328,7 +328,7 @@
     },
     "Setup/UpdateRelease.json": {
       "algorithm": "sha256",
-      "digest": "30589dff1a3cc11668bd749024b59e3235a336432dbc866e4902816149aa80ab"
+      "digest": "bc418dcf1390ef828161363ddf2de82d5e3f535b4b6d703153bd2a75334e345a"
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",

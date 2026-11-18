@@ -5,6 +5,11 @@ Known-good automatic stereo-window algorithm integrated with normal InjectZ outp
 """
 import argparse
 import math
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
 from pathlib import Path
 import numpy as np
 import torch
@@ -114,9 +119,15 @@ p.add_argument("--margin-px", type=float, default=2.0)
 p.add_argument("--soften-depth-edges", action="store_true")
 p.add_argument("--edge-soften-radius", type=float, default=2.0)
 p.add_argument("--edge-soften-strength", type=float, default=0.35)
+p.add_argument("--wiggle-frames", type=int, default=0, help="Number of intermediate views between the two eyes")
+p.add_argument("--wiggle-fps", type=int, default=24)
+p.add_argument("--wiggle-border", type=float, default=0)
+p.add_argument("--wiggle-corners", type=float, default=0)
 a = p.parse_args()
 if not 0.5 <= a.edge_soften_radius <= 6 or not 0 <= a.edge_soften_strength <= 1:
     p.error("Edge radius must be 0.5–6 pixels and strength must be 0–1.")
+if not 0 <= a.wiggle_frames <= 60 or not 1 <= a.wiggle_fps <= 60:
+    p.error("Intermediate frames must be 0–60 and playback speed 1–60 fps.")
 
 PHOTO = a.photo.expanduser().resolve()
 PLY = a.ply.expanduser().resolve()
@@ -249,6 +260,8 @@ if a.soften_depth_edges and a.edge_soften_strength > 0:
     print(f"Edge radius {a.edge_soften_radius:.2f}px; strength {a.edge_soften_strength:.0%}; "
           f"affected masks L {np.mean(left_mask > 0):.2%}, R {np.mean(right_mask > 0):.2%}", flush=True)
 
+original_w = W
+crop_shift = 0
 if not a.allow_window_violations:
     # A whole-pixel shift avoids resampling. Rounding up retains at least the
     # requested stereo-window margin. The two crops are the common overlap
@@ -266,6 +279,60 @@ if not a.allow_window_violations:
         left_img.save(left_path); right_img.save(right_path)
         print(f"Stereo-window overlap crop: {crop_shift}px from each side; "
               f"remaining eye width {W}px", flush=True)
+
+if a.wiggle_frames:
+    # One reconstruction, evenly spaced virtual cameras, and a return journey
+    # without repeated endpoints. Output is a normal 2D MP4 parallax animation.
+    sys.path.insert(0, str(Path.home() / 'InjectZ/Development/Reframe'))
+    from SharedStereoFormats import finish_eye
+    try:
+        import imageio_ffmpeg
+        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError:
+        ffmpeg = shutil.which('ffmpeg')
+    if not ffmpeg:
+        raise RuntimeError('MP4 export needs FFmpeg; install it or repair the InjectZ runtime.')
+    video_path = OUTDIR / f"{PHOTO.stem}_InjectZ_SHARP_Wiggle_Baseline{BASELINE:.3f}.mp4"
+    with tempfile.TemporaryDirectory(prefix='injectz-wiggle-', dir=OUTDIR) as tmp:
+        folder = Path(tmp)
+        total = a.wiggle_frames + 2
+        for i in range(total):
+            if i == 0:
+                frame = left_img.copy()
+            elif i == total - 1:
+                frame = right_img.copy()
+            else:
+                t = i / (total - 1)
+                center = torch.tensor([(t - .5) * BASELINE, 0., 0.], dtype=torch.float32)
+                view = world_to_camera(R, center)
+                rgb = next(render_frames_with_scene_distance(sp, [view], K, original_w, H,
+                                                              background=(1.,1.,1.), backend='metal'))
+                temp_path = folder / 'render.png'
+                write_png(rgb, temp_path, original_w, H)
+                with Image.open(temp_path) as im:
+                    frame = im.convert('RGB')
+                if a.soften_depth_edges and a.edge_soften_strength > 0:
+                    mask = projected_mask(sp, view, K, original_w, H, BASELINE, injectz_far_clip, a.edge_soften_radius)
+                    softened = soften(frame, mask, a.edge_soften_radius, a.edge_soften_strength)
+                    frame.close(); frame = softened
+                if crop_shift:
+                    x = round(2 * crop_shift * (1 - t))
+                    cropped = frame.crop((x, 0, x + W, H))
+                    frame.close(); frame = cropped
+            finished = finish_eye(frame, a.wiggle_border, a.wiggle_corners)
+            finished.save(folder / f'view_{i:04d}.png')
+            if finished is not frame: finished.close()
+            frame.close()
+            print(f'Wiggle view {i + 1}/{total}', flush=True)
+        order = list(range(total)) + list(range(total - 2, 0, -1))
+        for i, source_index in enumerate(order):
+            os.link(folder / f'view_{source_index:04d}.png', folder / f'frame_{i:04d}.png')
+        command = [str(ffmpeg), '-y', '-loglevel', 'error', '-stream_loop', '4',
+                   '-framerate', str(a.wiggle_fps), '-i', str(folder / 'frame_%04d.png'),
+                   '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', 'libx264',
+                   '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(video_path)]
+        subprocess.run(command, check=True)
+    print(f'Wiggle animation: {video_path}', flush=True)
 
 label = "Parallel" if a.format == "parallel" else "Crossview"
 sbs_path = OUTDIR / f"{PHOTO.stem}_{label}_InjectZ_SHARP_Baseline{token}.png"

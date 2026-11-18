@@ -33,6 +33,10 @@ def main():
     p.add_argument("--soften-depth-edges",action="store_true")
     p.add_argument("--edge-soften-radius",type=float,default=2.0)
     p.add_argument("--edge-soften-strength",type=float,default=0.35)
+    p.add_argument("--wiggle-frames",type=int,default=0)
+    p.add_argument("--wiggle-fps",type=int,default=24)
+    p.add_argument("--wiggle-border",type=float,default=0)
+    p.add_argument("--wiggle-corners",type=float,default=0)
     a=p.parse_args()
 
     photo=a.photo.expanduser().resolve()
@@ -82,6 +86,9 @@ def main():
     if a.eye_width is not None:
         cmd.extend(["--eye-width",str(a.eye_width)])
     if a.keep_eyes: cmd.append("--keep-eyes")
+    if a.wiggle_frames:
+        cmd += ["--wiggle-frames", str(a.wiggle_frames), "--wiggle-fps", str(a.wiggle_fps),
+                "--wiggle-border", str(a.wiggle_border), "--wiggle-corners", str(a.wiggle_corners)]
     if a.allow_window_violations: cmd.append("--allow-window-violations")
     if a.soften_depth_edges:
         cmd += ["--soften-depth-edges", "--edge-soften-radius", str(a.edge_soften_radius),

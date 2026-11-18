@@ -1,3 +1,8 @@
+# 0.3.8 — Multi-frame wigglegram and simplified controls
+
+- Add optional SHARP MP4 animation with intermediate-view and frame-rate controls.
+- Group additional export and preset controls in a collapsed section and allow resizing the main window.
+
 # 0.3.7 — Named conversion presets
 
 - Save, recall, replace, and delete named conversion settings on the main screen.

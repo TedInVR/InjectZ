@@ -56,6 +56,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var borderPopup: NSPopUpButton!
     var cornersPopup: NSPopUpButton!
     var presetPopup: NSPopUpButton!
+    var wiggleOption: NSButton!
+    var wiggleFrames: NSPopUpButton!
+    var wiggleFPS: NSPopUpButton!
+    var additionalSection: NSView!
+    var additionalToggle: NSButton!
+    var elevatedViews: [NSView] = []
+    var additionalExpanded = false
     let presetsKey = "InjectZConversionPresetsV1"
     func finishingArguments() -> [String] {
         let borders = [0, 1, 2, 5, 10]
@@ -280,7 +287,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(forName: NSApplication.willTerminateNotification, object: nil, queue: .main) { [weak self] _ in self?.sharpDepthEditor?.stop() }
         let frame = NSRect(x: 0, y: 0, width: 600, height: 635)
         window = NSWindow(contentRect: frame,
-                          styleMask: [.titled, .closable, .miniaturizable],
+                          styleMask: [.titled, .closable, .miniaturizable, .resizable],
                           backing: .buffered, defer: false)
         window.title = "Inject Z"
         window.isReleasedWhenClosed = false
@@ -445,8 +452,80 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         c.addSubview(deletePresetButton)
         refreshPresets()
 
+        // Keep the five common formats visible and move the other options into
+        // a disclosure area. Reparenting keeps all existing targets and state.
+        for view in c.subviews where view.frame.origin.y >= 340 {
+            view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y - 165))
+            elevatedViews.append(view)
+        }
+        for view in [advancedButton!, sharpEdgesButton!, resumeReframeButton!] {
+            view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: 147))
+            elevatedViews.append(view)
+        }
+        for view in [convertButton!, depthMapButton!, revealButton!, statusLabel!] {
+            view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y - 55))
+        }
+        for view in c.subviews {
+            if let label = view as? NSTextField, ["Black border", "Corners", "Preset"].contains(label.stringValue) {
+                label.removeFromSuperview()
+            }
+        }
+        additionalSection = NSView(frame: NSRect(x: 0, y: 115, width: 600, height: 205))
+        c.addSubview(additionalSection)
+        func inSection(_ view: NSView, _ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat = 25) {
+            view.removeFromSuperview(); view.frame = NSRect(x: x, y: y, width: w, height: h)
+            additionalSection.addSubview(view)
+        }
+        inSection(formatButtons[5], 20, 175, 190)
+        inSection(formatButtons[6], 220, 175, 230)
+        inSection(keepEyes, 20, 145, 250)
+        inSection(allowWindowViolations, 290, 145, 260)
+        let borderLabel = NSTextField(labelWithString: "Black border")
+        inSection(borderLabel, 20, 112, 100)
+        inSection(borderPopup, 120, 109, 125, 30)
+        let cornerLabel = NSTextField(labelWithString: "Corners")
+        inSection(cornerLabel, 260, 112, 70)
+        inSection(cornersPopup, 330, 109, 215, 30)
+        wiggleOption = NSButton(checkboxWithTitle: "Multi-frame wigglegram (SHARP)", target: nil, action: nil)
+        inSection(wiggleOption, 20, 78, 270)
+        let framesLabel = NSTextField(labelWithString: "Middle frames")
+        inSection(framesLabel, 290, 78, 100)
+        wiggleFrames = NSPopUpButton(frame: .zero)
+        wiggleFrames.addItems(withTitles: ["4", "8", "16", "32"]); wiggleFrames.selectItem(at: 1)
+        inSection(wiggleFrames, 390, 75, 62, 30)
+        wiggleFPS = NSPopUpButton(frame: .zero)
+        wiggleFPS.addItems(withTitles: ["12 fps", "24 fps", "30 fps", "60 fps"]); wiggleFPS.selectItem(at: 1)
+        inSection(wiggleFPS, 455, 75, 100, 30)
+        let presetLabel = NSTextField(labelWithString: "Preset")
+        inSection(presetLabel, 20, 38, 55)
+        inSection(presetPopup, 75, 34, 190, 30)
+        inSection(savePresetButton, 270, 34, 165, 30)
+        inSection(deletePresetButton, 440, 34, 100, 30)
+        additionalSection.isHidden = true
+        additionalToggle = NSButton(title: "▸ Additional Export Options", target: self, action: #selector(toggleAdditional))
+        additionalToggle.frame = NSRect(x: 25, y: 121, width: 245, height: 27)
+        additionalToggle.bezelStyle = .recessed
+        c.addSubview(additionalToggle)
+        elevatedViews.append(additionalToggle)
+        window.contentMinSize = NSSize(width: 600, height: 470)
+        window.setContentSize(NSSize(width: 600, height: 470))
+        window.center()
+
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc func toggleAdditional() {
+        let delta: CGFloat = additionalExpanded ? -205 : 205
+        additionalExpanded.toggle()
+        for view in elevatedViews { view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + delta)) }
+        additionalSection.isHidden = !additionalExpanded
+        additionalToggle.title = additionalExpanded ? "▾ Additional Export Options" : "▸ Additional Export Options"
+        if !additionalExpanded { window.contentMinSize = NSSize(width: 600, height: 470) }
+        var frame = window.frame
+        frame.origin.y -= delta; frame.size.height += delta
+        window.setFrame(frame, display: true, animate: true)
+        if additionalExpanded { window.contentMinSize = NSSize(width: 600, height: 675) }
     }
 
     func allPresets() -> [String: [String: Any]] {
@@ -503,6 +582,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             "soften": softenSharpEdges?.state == .on,
             "edgeRadius": edgeRadius?.doubleValue ?? 2,
             "edgeStrength": edgeStrength?.doubleValue ?? 0.35,
+            "wiggle": wiggleOption.state == .on,
+            "wiggleFrames": wiggleFrames.indexOfSelectedItem,
+            "wiggleFPS": wiggleFPS.indexOfSelectedItem,
             "method": methodPopup.titleOfSelectedItem ?? "forward_inpaint",
             "convergence": convergenceField.stringValue,
             "foreground": foregroundField.stringValue,
@@ -538,6 +620,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         softenSharpEdges?.state = (p["soften"] as? Bool ?? false) ? .on : .off
         edgeRadius?.doubleValue = p["edgeRadius"] as? Double ?? 2
         edgeStrength?.doubleValue = p["edgeStrength"] as? Double ?? 0.35
+        wiggleOption.state = (p["wiggle"] as? Bool ?? false) ? .on : .off
+        if let value = p["wiggleFrames"] as? Int, (0..<wiggleFrames.numberOfItems).contains(value) { wiggleFrames.selectItem(at: value) }
+        if let value = p["wiggleFPS"] as? Int, (0..<wiggleFPS.numberOfItems).contains(value) { wiggleFPS.selectItem(at: value) }
         edgeValuesChanged()
         if let method = p["method"] as? String, methodPopup.itemTitles.contains(method) { methodPopup.selectItem(withTitle: method) }
         convergenceField.stringValue = p["convergence"] as? String ?? "0.25"
@@ -826,8 +911,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         let formats = selectedFormats()
-        guard !formats.isEmpty else { statusLabel.stringValue = "Select at least one stereo format."; return }
+        let wantsWiggle = wiggleOption.state == .on && !depthMapOnly
+        guard !formats.isEmpty || wantsWiggle || depthMapOnly else { statusLabel.stringValue = "Select at least one output format."; return }
         let selectedEngine = enginePopup.indexOfSelectedItem
+        guard !wantsWiggle || selectedEngine == 0 else {
+            statusLabel.stringValue = "Multi-frame wigglegram currently requires the SHARP engine."; return
+        }
         if selectedEngine == 2 {
             if depthMapOnly { statusLabel.stringValue = "Reframe does not generate a depth map."; return }
             runGuidedReframe(photo: photo, formats: formats)
@@ -908,6 +997,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         photo.path, "--depth", sharpDepth, "--format", format, "--output-dir", outputDir.path]
             if isCustom { args += ["--baseline", depth] }
             if keepEyes.state == .on { args.append("--keep-eyes") }
+            if wantsWiggle {
+                let finish = finishingArguments()
+                args += ["--wiggle-frames", wiggleFrames.titleOfSelectedItem ?? "8",
+                         "--wiggle-fps", ["12", "24", "30", "60"][max(0, wiggleFPS.indexOfSelectedItem)],
+                         "--wiggle-border", finish[1], "--wiggle-corners", finish[3]]
+            }
             if softenSharpEdges?.state == .on {
                 args += ["--soften-depth-edges", "--edge-soften-radius", String(edgeRadius?.doubleValue ?? 2),
                          "--edge-soften-strength", String(edgeStrength?.doubleValue ?? 0.35)]
@@ -1017,15 +1112,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         let generated = outputDir.appendingPathComponent("\(stem)_Parallel_InjectZ_SHARP_Baseline\(baseline).png")
                         let generatedDate = try? generated.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
                         if let generatedDate, generatedDate >= conversionStarted.addingTimeInterval(-2) {
-                            let emitted = self.emitFormats(from: generated, source: photo, engine: "SHARP", depth: baseline, formats: formats)
-                            result = emitted?.first
-                            if emitted == nil { completionNote = " (format generation failed; internal parallel render retained)" }
+                            if !formats.isEmpty {
+                                let emitted = self.emitFormats(from: generated, source: photo, engine: "SHARP", depth: baseline, formats: formats)
+                                result = emitted?.first
+                                if emitted == nil { completionNote = " (format generation failed; internal parallel render retained)" }
+                            }
+                            if wantsWiggle {
+                                let video = outputDir.appendingPathComponent("\(stem)_InjectZ_SHARP_Wiggle_Baseline\(baseline).mp4")
+                                if fm.fileExists(atPath: video.path) {
+                                    let destination = unusedDestination("\(stem)_InjectZ_SHARP_MultiFrameWiggle_Depth\(baseline)", "mp4")
+                                    do { try fm.copyItem(at: video, to: destination); if result == nil { result = destination } }
+                                    catch { completionNote += " (wiggle could not be copied to the photo folder)" }
+                                } else { completionNote += " (wiggle output was not found)" }
+                            }
                         }
                     }
                     if let result = result, FileManager.default.fileExists(atPath: result.path) {
                         self.lastOutput = result
                         self.revealButton.isEnabled = true
-                        self.statusLabel.stringValue = depthMapOnly ? "Depth map complete — \(result.lastPathComponent)\(completionNote)" : "Created \(formats.count) format(s) — \(result.lastPathComponent)"
+                        self.statusLabel.stringValue = depthMapOnly ? "Depth map complete — \(result.lastPathComponent)\(completionNote)" : "Created \(formats.count + (wantsWiggle ? 1 : 0)) format(s) — \(result.lastPathComponent)\(completionNote)"
                         self.revealOutput(result, openImage: true)
                         InjectZAudioAlerts.shared.playCompletion()
                     } else {
