@@ -9,6 +9,8 @@ p.add_argument('working_dir'); p.add_argument('source_photo')
 p.add_argument('--formats',nargs='+',choices=['Parallel','Crossview','Anaglyph_FullColor','Anaglyph_HalfColor','Anaglyph_Dubois','Left_Right_Left','Parallel_Over_Crossview'],required=True)
 p.add_argument('--border-percent',type=float,default=0)
 p.add_argument('--corner-percent',type=float,default=0)
+p.add_argument('--card-color')
+p.add_argument('--card-title',default='')
 p.add_argument('--pan',type=float,default=None)
 p.add_argument('--allow-window-violations',action='store_true')
 a=p.parse_args()
@@ -43,8 +45,11 @@ with tempfile.TemporaryDirectory(prefix='InjectZ-normalized-', dir=root) as scra
                     '--convergence',str(shift),'--output',str(dest)],check=True)
     if not dest.is_file() or not dest.stat().st_size: sys.exit('Stereo output missing or empty.')
     formatter=Path(__file__).with_name('SharedStereoFormats.py')
-    subprocess.run([sys.executable,str(formatter),str(dest),'--output-prefix',
+    formatter_args = [sys.executable,str(formatter),str(dest),'--output-prefix',
                     str(source.with_name(source.stem+'_InjectZ_Reframe')),'--depth-token',
                     format(a.pan or 0, '.4f'),'--border-percent',str(a.border_percent),
-                    '--corner-percent',str(a.corner_percent),'--formats',*a.formats],check=True)
+                    '--corner-percent',str(a.corner_percent)]
+    if a.card_color:
+        formatter_args += ['--card-color', a.card_color, '--card-title', a.card_title]
+    subprocess.run(formatter_args + ['--formats', *a.formats],check=True)
 print('ASSEMBLY_COMPLETE Original and Photos working album preserved.')

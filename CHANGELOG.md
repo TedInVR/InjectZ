@@ -1,3 +1,8 @@
+# 0.3.13 — Stereo-card frames for still exports
+
+- Apply the selected card color, arch and caption consistently to every stereo still format and separate eyes.
+- Keep matched captions at the stereo window, and preserve card colors in anaglyphs.
+
 # 0.3.12 — Stereo-card caption layout
 
 - Match bottom border to side borders when there is no caption.

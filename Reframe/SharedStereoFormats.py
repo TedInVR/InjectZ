@@ -151,6 +151,8 @@ def main():
     p.add_argument('--retain-source', action='store_true')
     p.add_argument('--border-percent', type=float, default=0, choices=(0, 1, 2, 5, 10))
     p.add_argument('--corner-percent', type=float, default=0, choices=(0, 2, 5, 10, 20))
+    p.add_argument('--card-color')
+    p.add_argument('--card-title', default='')
     p.add_argument('--input-format', choices=('parallel', 'crossview', 'eyes'), default='parallel')
     p.add_argument('--right-eye', type=Path)
     a = p.parse_args()
@@ -168,14 +170,25 @@ def main():
             first = image.crop((0, 0, w, image.height))
             second = image.crop((w, 0, image.width, image.height))
             left, right = (first, second) if a.input_format == 'parallel' else (second, first)
-    left = finish_eye(left, a.border_percent, a.corner_percent)
-    right = finish_eye(right, a.border_percent, a.corner_percent)
+    original_left, original_right = left, right
+    if a.card_color:
+        left = finish_stereo_card(left, a.card_color, a.card_title)
+        right = finish_stereo_card(right, a.card_color, a.card_title)
+    else:
+        left = finish_eye(left, a.border_percent, a.corner_percent)
+        right = finish_eye(right, a.border_percent, a.corner_percent)
     for fmt in dict.fromkeys(a.formats):
         name = a.output_prefix.with_name(a.output_prefix.name + '_' + fmt + '_Depth' + a.depth_token)
         dest = Path(str(name) + '.png'); i = 2
         while dest.exists() or dest == a.parallel_sbs:
             dest = Path(str(name) + f'_{i}.png'); i += 1
-        output_image(left, right, fmt).save(dest)
+        if a.card_color and fmt.startswith('Anaglyph_'):
+            # Frame after mixing the eye images so anaglyph color transforms
+            # do not change the selected card color or neutral caption.
+            result = finish_stereo_card(output_image(original_left, original_right, fmt), a.card_color, a.card_title)
+        else:
+            result = output_image(left, right, fmt)
+        result.save(dest)
         print('SUCCESS', dest, flush=True)
     if not a.retain_source:
         # Source is a dedicated temporary render; never delete arbitrary input files.

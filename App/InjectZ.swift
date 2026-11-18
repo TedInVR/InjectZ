@@ -76,8 +76,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func finishingArguments() -> [String] {
         let borders = [0, 1, 2, 5, 10]
         let corners = [0, 2, 5, 10, 20]
-        return ["--border-percent", String(borders[max(0, borderPopup.indexOfSelectedItem)]),
-                "--corner-percent", String(corners[max(0, cornersPopup.indexOfSelectedItem)])]
+        var result = ["--border-percent", String(borders[max(0, borderPopup.indexOfSelectedItem)]),
+                      "--corner-percent", String(corners[max(0, cornersPopup.indexOfSelectedItem)])]
+        if wiggleCard.state == .on { result += ["--card-color", cardColorHex(), "--card-title", wiggleCardTitle.stringValue] }
+        return result
     }
     func selectedFormats() -> [String] { zip(formatButtons, formatIDs).compactMap { $0.0.state == .on ? $0.1 : nil } }
     var advancedButton: NSButton!
@@ -545,7 +547,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + 50))
         }
         wiggleCard = NSButton(checkboxWithTitle: "Stereo-card frame", target: nil, action: nil)
-        wiggleCard.toolTip = "Frame each finished wigglegram view after SHARP rendering."
+        wiggleCard.toolTip = "Frame all finished stereo exports and wigglegram views after rendering."
         inSection(wiggleCard, 20, 45, 180)
         wiggleCardColor = NSColorWell(frame: .zero)
         wiggleCardColor.color = NSColor(srgbRed: 0.88, green: 0.79, blue: 0.62, alpha: 1)
@@ -1118,7 +1120,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             statusLabel.stringValue = "Choose or drop a photo first."
             return
         }
-        let formats = selectedFormats()
+        let formats = selectedFormats() + (stereoInputFormat == nil && enginePopup.indexOfSelectedItem == 0 && keepEyes.state == .on ? ["LeftEye", "RightEye"] : [])
         let wantsWiggle = wiggleOption.state == .on && !depthMapOnly
         var workingPhoto = originalPhoto
         var importedOutputs: [URL] = []
