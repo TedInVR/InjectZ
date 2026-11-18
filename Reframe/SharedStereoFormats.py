@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageOps, ImageDraw
 
-FORMATS = ('Parallel', 'Crossview', 'Anaglyph_FullColor', 'Anaglyph_HalfColor', 'Anaglyph_Dubois', 'Left_Right_Left', 'Parallel_Over_Crossview')
+FORMATS = ('Parallel', 'Crossview', 'Anaglyph_FullColor', 'Anaglyph_HalfColor', 'Anaglyph_Dubois', 'Left_Right_Left', 'Parallel_Over_Crossview', 'LeftEye', 'RightEye')
 DUBOIS_LEFT = np.array([[.437,.449,.164],[-.062,-.062,-.024],[-.048,-.050,-.017]], dtype=np.float32)
 DUBOIS_RIGHT = np.array([[-.011,-.032,-.007],[.377,.761,.009],[-.026,-.093,1.234]], dtype=np.float32)
 
@@ -19,6 +19,8 @@ def linear_to_srgb(x):
     return np.where(x <= .0031308, x * 12.92, 1.055 * np.maximum(x, 0) ** (1 / 2.4) - .055)
 
 def output_image(left, right, fmt):
+    if fmt == 'LeftEye': return left.copy()
+    if fmt == 'RightEye': return right.copy()
     if fmt == 'Left_Right_Left':
         out = Image.new('RGB', (left.width * 3, left.height))
         for i, eye in enumerate((left, right, left)):
@@ -72,13 +74,23 @@ def main():
     p.add_argument('--retain-source', action='store_true')
     p.add_argument('--border-percent', type=float, default=0, choices=(0, 1, 2, 5, 10))
     p.add_argument('--corner-percent', type=float, default=0, choices=(0, 2, 5, 10, 20))
+    p.add_argument('--input-format', choices=('parallel', 'crossview', 'eyes'), default='parallel')
+    p.add_argument('--right-eye', type=Path)
     a = p.parse_args()
     with Image.open(a.parallel_sbs) as image:
-        image.load()
-        if image.width % 2: p.error('Full SBS width must be even.')
-        w = image.width // 2
-        left = image.crop((0, 0, w, image.height)).convert('RGB')
-        right = image.crop((w, 0, image.width, image.height)).convert('RGB')
+        image = ImageOps.exif_transpose(image).convert('RGB')
+        if a.input_format == 'eyes':
+            if not a.right_eye: p.error('Separate eye input requires --right-eye.')
+            left = image.copy()
+            with Image.open(a.right_eye) as second:
+                right = ImageOps.exif_transpose(second).convert('RGB')
+            if left.size != right.size: p.error('The separate left and right images must have identical dimensions.')
+        else:
+            if image.width % 2: p.error('Full SBS width must be even.')
+            w = image.width // 2
+            first = image.crop((0, 0, w, image.height))
+            second = image.crop((w, 0, image.width, image.height))
+            left, right = (first, second) if a.input_format == 'parallel' else (second, first)
     left = finish_eye(left, a.border_percent, a.corner_percent)
     right = finish_eye(right, a.border_percent, a.corner_percent)
     for fmt in dict.fromkeys(a.formats):

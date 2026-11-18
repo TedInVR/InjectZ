@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 import ApplicationServices
 
 final class DropView: NSView {
-    var onDrop: ((URL) -> Void)?
+    var onDrop: (([URL]) -> Void)?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -29,8 +29,8 @@ final class DropView: NSView {
         guard let urls = sender.draggingPasteboard.readObjects(
             forClasses: [NSURL.self],
             options: [.urlReadingFileURLsOnly: true]
-        ) as? [URL], let url = urls.first else { return false }
-        onDrop?(url)
+        ) as? [URL], !urls.isEmpty else { return false }
+        onDrop?(urls)
         return true
     }
 }
@@ -87,6 +87,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var revealButton: NSButton!
     var resumeReframeButton: NSButton!
     var selectedPhoto: URL?
+    var stereoInputFormat: String?
+    var stereoRightEye: URL?
+    var relatedAppsMenu: NSMenu!
+    let relatedAppsKey = "InjectZRelatedAppsV1"
     var lastOutput: URL?
     var sharpEdgesButton: NSButton!
     var sharpEdgesPanel: NSPanel?
@@ -245,11 +249,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // A nil target uses AppKit's responder chain, so Close reaches the active window.
         let fileItem = NSMenuItem(title: "File", action: nil, keyEquivalent: "")
         let fileMenu = NSMenu(title: "File")
+        let stereoItem = NSMenuItem(title: "Open Stereo Image…", action: #selector(openStereoImage), keyEquivalent: "")
+        stereoItem.target = self; fileMenu.addItem(stereoItem)
+        let eyesItem = NSMenuItem(title: "Open Left and Right Images…", action: #selector(openStereoEyes), keyEquivalent: "")
+        eyesItem.target = self; fileMenu.addItem(eyesItem)
+        fileMenu.addItem(NSMenuItem.separator())
         let closeItem = NSMenuItem(title: "Close Window", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
         closeItem.keyEquivalentModifierMask = [.command]
         fileMenu.addItem(closeItem)
         fileItem.submenu = fileMenu
         mainMenu.addItem(fileItem)
+
+        let appsItem = NSMenuItem(title: "Apps", action: nil, keyEquivalent: "")
+        relatedAppsMenu = NSMenu(title: "Apps"); appsItem.submenu = relatedAppsMenu
+        mainMenu.addItem(appsItem)
+        refreshRelatedApps()
 
         let depthMenuItem = NSMenuItem(title: "SHARP", action: nil, keyEquivalent: "")
         let depthMenu = NSMenu(title: "SHARP")
@@ -311,7 +325,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.center()
 
         let c = DropView(frame: frame)
-        c.onDrop = { [weak self] url in self?.selectPhoto(url) }
+        c.onDrop = { [weak self] urls in self?.receiveDroppedImages(urls) }
         window.contentView = c
 
         func addLabel(_ text: String, _ x: CGFloat, _ y: CGFloat, _ w: CGFloat = 120) {
@@ -504,6 +518,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         inSection(cornerLabel, 260, 112, 70)
         inSection(cornersPopup, 330, 109, 215, 30)
         wiggleOption = NSButton(checkboxWithTitle: "Multi-frame wigglegram (SHARP)", target: nil, action: nil)
+        wiggleOption.toolTip = "For an imported stereo pair SHARP reconstructs the left eye; the wigglegram does not use the right eye."
         inSection(wiggleOption, 20, 78, 270)
         let framesLabel = NSTextField(labelWithString: "Middle frames")
         inSection(framesLabel, 290, 78, 100)
@@ -730,8 +745,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         advancedButton.isHidden = !iw3
         sharpEdgesButton.isHidden = enginePopup.indexOfSelectedItem != 0
         depthMapButton.isEnabled = iw3
-        keepEyes.isEnabled = !iw3
-        keepEyes.isHidden = iw3 || enginePopup.indexOfSelectedItem == 2
+        keepEyes.isEnabled = stereoInputFormat != nil || !iw3
+        keepEyes.isHidden = stereoInputFormat == nil && (iw3 || enginePopup.indexOfSelectedItem == 2)
         allowWindowViolations.isEnabled = true
         resumeReframeButton.isHidden = enginePopup.indexOfSelectedItem != 2
         if enginePopup.indexOfSelectedItem == 2 {
@@ -887,6 +902,76 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         advancedPanel = panel
     }
 
+    func refreshRelatedApps() {
+        guard let menu = relatedAppsMenu else { return }
+        menu.removeAllItems()
+        let builtins: [(String, [String], String)] = [
+            ("Ted's Video Tool", ["TVT.app", "TVT_Ted's Video Tool.app"], "https://github.com/TedInVR/TVT-Teds_Video_Tool"),
+            ("StereoMask for Mac", ["StereoMask.app"], "https://github.com/TedInVR/StereoMask-Mac"),
+            ("VM ReSizer", ["VM Re-Sizer.app", "VM ReSizer.app", "VMReSizer.app"], "https://github.com/TedInVR/VMReSizer"),
+            ("Stereo Slideshow", ["Stereo Slideshow.app", "StereoSlideshow.app"], "https://github.com/TedInVR/StereoSlideshow")
+        ]
+        for (name, names, link) in builtins {
+            let item = NSMenuItem(title: name + "…", action: #selector(openRelatedApp(_:)), keyEquivalent: "")
+            item.target = self; item.representedObject = ["names": names, "url": link]
+            menu.addItem(item)
+        }
+        let custom = UserDefaults.standard.array(forKey: relatedAppsKey) as? [[String: String]] ?? []
+        if !custom.isEmpty { menu.addItem(NSMenuItem.separator()) }
+        for app in custom {
+            guard let name = app["name"], let path = app["path"] else { continue }
+            let item = NSMenuItem(title: name, action: #selector(openRelatedApp(_:)), keyEquivalent: "")
+            item.target = self; item.representedObject = ["path": path]; menu.addItem(item)
+        }
+        menu.addItem(NSMenuItem.separator())
+        let add = NSMenuItem(title: "Add an App…", action: #selector(addRelatedApp), keyEquivalent: "")
+        add.target = self; menu.addItem(add)
+        if !custom.isEmpty {
+            let remove = NSMenuItem(title: "Remove an Added App…", action: #selector(removeRelatedApp), keyEquivalent: "")
+            remove.target = self; menu.addItem(remove)
+        }
+    }
+
+    @objc func openRelatedApp(_ sender: NSMenuItem) {
+        guard let info = sender.representedObject as? [String: Any] else { return }
+        var paths: [URL] = []
+        if let path = info["path"] as? String { paths.append(URL(fileURLWithPath: path)) }
+        if let names = info["names"] as? [String] {
+            for name in names { paths.append(URL(fileURLWithPath: "/Applications").appendingPathComponent(name)) }
+        }
+        if let found = paths.first(where: { FileManager.default.fileExists(atPath: $0.path) }) {
+            NSWorkspace.shared.open(found); return
+        }
+        let link = info["url"] as? String ?? ""
+        let alert = NSAlert(); alert.messageText = "\(sender.title.replacingOccurrences(of: "…", with: "")) was not found"
+        alert.informativeText = link.isEmpty ? "If it is installed elsewhere, use Apps → Add an App to locate it. A public download is not yet available." : "Open the project's GitHub page for its download and installation instructions. If it is already installed elsewhere, use Apps → Add an App."
+        if !link.isEmpty { alert.addButton(withTitle: "Open Project Page") }
+        alert.addButton(withTitle: "OK")
+        if alert.runModal() == .alertFirstButtonReturn, let url = URL(string: link), !link.isEmpty { NSWorkspace.shared.open(url) }
+    }
+
+    @objc func addRelatedApp() {
+        let p = NSOpenPanel(); p.message = "Choose an installed application."; p.allowedContentTypes = [.applicationBundle]
+        p.canChooseFiles = true; p.canChooseDirectories = false
+        guard p.runModal() == .OK, let url = p.url else { return }
+        var apps = UserDefaults.standard.array(forKey: relatedAppsKey) as? [[String: String]] ?? []
+        guard !apps.contains(where: { $0["path"] == url.path }) else { return }
+        apps.append(["name": url.deletingPathExtension().lastPathComponent, "path": url.path])
+        UserDefaults.standard.set(apps, forKey: relatedAppsKey); refreshRelatedApps()
+    }
+
+    @objc func removeRelatedApp() {
+        var apps = UserDefaults.standard.array(forKey: relatedAppsKey) as? [[String: String]] ?? []
+        guard !apps.isEmpty else { return }
+        let alert = NSAlert(); alert.messageText = "Remove an Added App"
+        alert.informativeText = "This removes the shortcut, not the app."
+        let choices = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 300, height: 30))
+        choices.addItems(withTitles: apps.map { $0["name"] ?? "App" }); alert.accessoryView = choices
+        alert.addButton(withTitle: "Remove"); alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        apps.remove(at: choices.indexOfSelectedItem); UserDefaults.standard.set(apps, forKey: relatedAppsKey); refreshRelatedApps()
+    }
+
     @objc func choosePhoto() {
         let p = NSOpenPanel()
         p.allowsMultipleSelection = false
@@ -903,10 +988,61 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         selectedPhoto = u
+        stereoInputFormat = nil
+        stereoRightEye = nil
+        keepEyes?.isHidden = enginePopup.indexOfSelectedItem != 0
+        keepEyes?.isEnabled = enginePopup.indexOfSelectedItem == 0
         photoField.stringValue = u.lastPathComponent
         statusLabel.stringValue = "Ready"
         revealButton.isEnabled = false
         lastOutput = nil
+    }
+
+    func chooseStereoOrder(_ url: URL, includePhotoChoice: Bool) {
+        let alert = NSAlert(); alert.messageText = "How is this image arranged?"
+        alert.informativeText = "For stereo images choose the order of the full-width eye views."
+        alert.addButton(withTitle: "Parallel (Left / Right)")
+        alert.addButton(withTitle: "Crossview (Right / Left)")
+        alert.addButton(withTitle: includePhotoChoice ? "Single 2D Photo" : "Cancel")
+        let result = alert.runModal()
+        if result == .alertThirdButtonReturn { if includePhotoChoice { selectPhoto(url) }; return }
+        guard result == .alertFirstButtonReturn || result == .alertSecondButtonReturn else { return }
+        selectPhoto(url)
+        stereoInputFormat = result == .alertFirstButtonReturn ? "parallel" : "crossview"
+        keepEyes.isHidden = false; keepEyes.isEnabled = true
+        photoField.stringValue = "Stereo \(stereoInputFormat!): \(url.lastPathComponent)"
+        statusLabel.stringValue = "Stereo image ready to export."
+    }
+
+    func chooseEyeOrder(_ urls: [URL]) {
+        guard urls.count == 2 else { statusLabel.stringValue = "Select exactly two eye images."; return }
+        let alert = NSAlert(); alert.messageText = "Which image is the left eye?"
+        alert.informativeText = "First: \(urls[0].lastPathComponent)\nSecond: \(urls[1].lastPathComponent)"
+        alert.addButton(withTitle: "First is Left"); alert.addButton(withTitle: "Second is Left"); alert.addButton(withTitle: "Cancel")
+        let choice = alert.runModal()
+        guard choice == .alertFirstButtonReturn || choice == .alertSecondButtonReturn else { return }
+        let left = choice == .alertFirstButtonReturn ? urls[0] : urls[1]
+        let right = choice == .alertFirstButtonReturn ? urls[1] : urls[0]
+        selectPhoto(left); stereoInputFormat = "eyes"; stereoRightEye = right
+        keepEyes.isHidden = false; keepEyes.isEnabled = true
+        photoField.stringValue = "L: \(left.lastPathComponent)  R: \(right.lastPathComponent)"
+        statusLabel.stringValue = "Separate left and right eyes ready to export."
+    }
+
+    func receiveDroppedImages(_ urls: [URL]) {
+        if urls.count == 1 { chooseStereoOrder(urls[0], includePhotoChoice: true) }
+        else { chooseEyeOrder(urls) }
+    }
+
+    @objc func openStereoImage() {
+        let p = NSOpenPanel(); p.allowsMultipleSelection = false; p.allowedContentTypes = [.image]
+        if p.runModal() == .OK, let u = p.url { chooseStereoOrder(u, includePhotoChoice: false) }
+    }
+
+    @objc func openStereoEyes() {
+        let p = NSOpenPanel(); p.allowsMultipleSelection = true; p.allowedContentTypes = [.image]
+        p.message = "Select exactly two images, then identify the left eye."
+        if p.runModal() == .OK { chooseEyeOrder(p.urls) }
     }
 
     @objc func convert() {
@@ -921,14 +1057,68 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         runConversion(depthMapOnly: true)
     }
 
+    func extractStereoLeft(_ source: URL, inputFormat: String, rightEye: URL?) -> URL? {
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        let helper = home.appendingPathComponent("InjectZ/Development/Reframe/SharedStereoFormats.py")
+        let python = home.appendingPathComponent("InjectZ/Development/IW3/python/bin/python")
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("InjectZ-Stereo-" + UUID().uuidString)
+        do { try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true) } catch { return nil }
+        let prefix = folder.appendingPathComponent("Left-" + UUID().uuidString)
+        let process = Process(); process.executableURL = python
+        var args = [helper.path, source.path, "--input-format", inputFormat, "--output-prefix", prefix.path,
+                    "--depth-token", "Source"]
+        if let rightEye = rightEye { args += ["--right-eye", rightEye.path] }
+        process.arguments = args + ["--formats", "LeftEye"]
+        process.standardOutput = FileHandle.nullDevice; process.standardError = FileHandle.nullDevice
+        do {
+            try process.run(); process.waitUntilExit()
+            let output = URL(fileURLWithPath: prefix.path + "_LeftEye_DepthSource.png")
+            guard process.terminationStatus == 0, FileManager.default.fileExists(atPath: output.path) else { return nil }
+            return output
+        } catch { return nil }
+    }
+
     func runConversion(depthMapOnly: Bool) {
-        guard let photo = selectedPhoto else {
+        guard let originalPhoto = selectedPhoto else {
             NSSound.beep()
             statusLabel.stringValue = "Choose or drop a photo first."
             return
         }
         let formats = selectedFormats()
         let wantsWiggle = wiggleOption.state == .on && !depthMapOnly
+        var workingPhoto = originalPhoto
+        var importedOutputs: [URL] = []
+        if let inputFormat = stereoInputFormat {
+            guard !depthMapOnly else { statusLabel.stringValue = "Depth-map generation is not available for imported stereo yet."; return }
+            guard !wantsWiggle || enginePopup.indexOfSelectedItem == 0 else {
+                statusLabel.stringValue = "Choose SHARP to make a wigglegram from the left eye."; return
+            }
+            var importedFormats = formats
+            if keepEyes.state == .on { importedFormats += ["LeftEye", "RightEye"] }
+            guard !importedFormats.isEmpty || wantsWiggle else { statusLabel.stringValue = "Select at least one output format."; return }
+            if !importedFormats.isEmpty {
+                guard let outputs = emitFormats(from: originalPhoto, source: originalPhoto, engine: "Stereo", depth: "Imported", formats: importedFormats,
+                                                inputFormat: inputFormat, rightEye: stereoRightEye) else {
+                    statusLabel.stringValue = "Stereo export failed. Check eye dimensions and image format."; return
+                }
+                importedOutputs = outputs
+            }
+            if !wantsWiggle {
+                if let result = importedOutputs.first {
+                    lastOutput = result; revealButton.isEnabled = true
+                    statusLabel.stringValue = "Created \(importedFormats.count) stereo export(s)."
+                    revealOutput(result, openImage: true)
+                }
+                return
+            }
+            guard let left = extractStereoLeft(originalPhoto, inputFormat: inputFormat, rightEye: stereoRightEye) else {
+                statusLabel.stringValue = "Could not prepare the left eye for SHARP. Check the input images."; return
+            }
+            workingPhoto = left
+        }
+        let photo = workingPhoto
+        let existingStereo = stereoInputFormat != nil
+        let existingStereoOutputs = importedOutputs
         guard !formats.isEmpty || wantsWiggle || depthMapOnly else { statusLabel.stringValue = "Select at least one output format."; return }
         let selectedEngine = enginePopup.indexOfSelectedItem
         guard !wantsWiggle || selectedEngine == 0 else {
@@ -1013,7 +1203,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             var args = [root.appendingPathComponent("injectz_engine.py").path,
                         photo.path, "--depth", sharpDepth, "--format", format, "--output-dir", outputDir.path]
             if isCustom { args += ["--baseline", depth] }
-            if keepEyes.state == .on { args.append("--keep-eyes") }
+            if keepEyes.state == .on && !existingStereo { args.append("--keep-eyes") }
             if wantsWiggle {
                 let finish = finishingArguments()
                 args += ["--wiggle-frames", wiggleFrames.titleOfSelectedItem ?? "8",
@@ -1032,7 +1222,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         convertButton.isEnabled = false
         depthMapButton.isEnabled = false
         revealButton.isEnabled = false
-        statusLabel.stringValue = depthMapOnly ? "Generating depth map…" : "Converting…"
+        statusLabel.stringValue = depthMapOnly ? "Generating depth map…" : (existingStereo ? "Generating SHARP wiggle from the left eye…" : "Converting…")
 
         // Read output concurrently to avoid blocking if a model prints extensive logs.
         let pipe = Pipe()
@@ -1061,6 +1251,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         DispatchQueue.global(qos: .userInitiated).async {
             task.waitUntilExit()
+            if existingStereo {
+                let stem = photo.deletingPathExtension().lastPathComponent
+                let cached = root.appendingPathComponent("cache/sharp/" + stem + ".ply")
+                try? FileManager.default.removeItem(at: cached)
+                try? FileManager.default.removeItem(at: photo.deletingLastPathComponent())
+            }
             pipe.fileHandleForReading.readabilityHandler = nil
             let remainder = pipe.fileHandleForReading.readDataToEndOfFile()
             logLock.lock()
@@ -1071,11 +1267,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.convertButton.isEnabled = true
                 self.depthMapButton.isEnabled = isIW3
                 if task.terminationStatus == 0 {
-                    var result: URL?
+                    var result: URL? = existingStereoOutputs.first
                     var completionNote = ""
                     let fm = FileManager.default
                     let stem = photo.deletingPathExtension().lastPathComponent
-                    let photoFolder = photo.deletingLastPathComponent()
+                    let photoFolder = originalPhoto.deletingLastPathComponent()
                     func unusedDestination(_ basename: String, _ ext: String) -> URL {
                         var dest = photoFolder.appendingPathComponent(basename).appendingPathExtension(ext)
                         var number = 2
@@ -1129,7 +1325,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                         let generated = outputDir.appendingPathComponent("\(stem)_Parallel_InjectZ_SHARP_Baseline\(baseline).png")
                         let generatedDate = try? generated.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
                         if let generatedDate, generatedDate >= conversionStarted.addingTimeInterval(-2) {
-                            if !formats.isEmpty {
+                            if !formats.isEmpty && !existingStereo {
                                 let emitted = self.emitFormats(from: generated, source: photo, engine: "SHARP", depth: baseline, formats: formats)
                                 result = emitted?.first
                                 if emitted == nil { completionNote = " (format generation failed; internal parallel render retained)" }
@@ -1137,7 +1333,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                             if wantsWiggle {
                                 let video = outputDir.appendingPathComponent("\(stem)_InjectZ_SHARP_Wiggle_Baseline\(baseline).mp4")
                                 if fm.fileExists(atPath: video.path) {
-                                    let destination = unusedDestination("\(stem)_InjectZ_SHARP_MultiFrameWiggle_Depth\(baseline)", "mp4")
+                                    let destination = unusedDestination("\(originalPhoto.deletingPathExtension().lastPathComponent)_InjectZ_SHARP_MultiFrameWiggle_Depth\(baseline)", "mp4")
                                     do { try fm.copyItem(at: video, to: destination); if result == nil { result = destination } }
                                     catch { completionNote += " (wiggle could not be copied to the photo folder)" }
                                 } else { completionNote += " (wiggle output was not found)" }
@@ -1147,7 +1343,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     if let result = result, FileManager.default.fileExists(atPath: result.path) {
                         self.lastOutput = result
                         self.revealButton.isEnabled = true
-                        self.statusLabel.stringValue = depthMapOnly ? "Depth map complete — \(result.lastPathComponent)\(completionNote)" : "Created \(formats.count + (wantsWiggle ? 1 : 0)) format(s) — \(result.lastPathComponent)\(completionNote)"
+                        self.statusLabel.stringValue = depthMapOnly ? "Depth map complete — \(result.lastPathComponent)\(completionNote)" : "Created exports — \(result.lastPathComponent)\(completionNote)"
                         self.revealOutput(result, openImage: true)
                         InjectZAudioAlerts.shared.playCompletion()
                     } else {
@@ -1168,7 +1364,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func emitFormats(from parallel: URL, source: URL, engine: String, depth: String, formats: [String]) -> [URL]? {
+    func emitFormats(from parallel: URL, source: URL, engine: String, depth: String, formats: [String], inputFormat: String = "parallel", rightEye: URL? = nil) -> [URL]? {
         let home = FileManager.default.homeDirectoryForCurrentUser
         let helper = home.appendingPathComponent("InjectZ/Development/Reframe/SharedStereoFormats.py")
         let python = home.appendingPathComponent("InjectZ/Development/IW3/python/bin/python")
@@ -1177,8 +1373,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let task = Process()
         task.executableURL = python
         let prefix = source.deletingPathExtension().path + "_InjectZ_" + engine
-        task.arguments = [helper.path, parallel.path, "--output-prefix", prefix,
-                          "--depth-token", depth] + finishingArguments() + ["--formats"] + formats
+        var arguments = [helper.path, parallel.path, "--output-prefix", prefix,
+                         "--depth-token", depth, "--input-format", inputFormat] + finishingArguments()
+        if let rightEye = rightEye { arguments += ["--right-eye", rightEye.path] }
+        task.arguments = arguments + ["--formats"] + formats
         let log = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("InjectZ-formats-" + UUID().uuidString + ".log")
         FileManager.default.createFile(atPath: log.path, contents: nil)
         guard let handle = FileHandle(forWritingAtPath: log.path) else { return nil }

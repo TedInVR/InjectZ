@@ -1,3 +1,8 @@
+# 0.3.10 — Existing stereo images and Apps menu
+
+- Import parallel, crossview, and separate stereo eyes for still exports; wigglegrams reconstruct the left eye with SHARP.
+- Add built-in related-app links and user-configurable application shortcuts.
+
 # 0.3.9 — Update options in Help
 
 - Show update commands in both Help and Inject Z menus, keeping automatic-update checks synchronized.
