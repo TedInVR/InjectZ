@@ -39,6 +39,8 @@ def main():
     p.add_argument("--wiggle-corners",type=float,default=0)
     p.add_argument("--wiggle-card-color")
     p.add_argument("--wiggle-card-title",default="")
+    p.add_argument("--export-wiggle-views",action="store_true")
+    p.add_argument("--no-wiggle-video",action="store_true")
     a=p.parse_args()
 
     photo=a.photo.expanduser().resolve()
@@ -93,6 +95,8 @@ def main():
                 "--wiggle-border", str(a.wiggle_border), "--wiggle-corners", str(a.wiggle_corners)]
         if a.wiggle_card_color:
             cmd += ["--wiggle-card-color", a.wiggle_card_color, "--wiggle-card-title", a.wiggle_card_title]
+        if a.export_wiggle_views: cmd.append("--export-wiggle-views")
+        if a.no_wiggle_video: cmd.append("--no-wiggle-video")
     if a.allow_window_violations: cmd.append("--allow-window-violations")
     if a.soften_depth_edges:
         cmd += ["--soften-depth-edges", "--edge-soften-radius", str(a.edge_soften_radius),

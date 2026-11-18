@@ -125,6 +125,8 @@ p.add_argument("--wiggle-border", type=float, default=0)
 p.add_argument("--wiggle-corners", type=float, default=0)
 p.add_argument("--wiggle-card-color")
 p.add_argument("--wiggle-card-title", default="")
+p.add_argument("--export-wiggle-views", action="store_true")
+p.add_argument("--no-wiggle-video", action="store_true")
 a = p.parse_args()
 if not 0.5 <= a.edge_soften_radius <= 6 or not 0 <= a.edge_soften_strength <= 1:
     p.error("Edge radius must be 0.5–6 pixels and strength must be 0–1.")
@@ -287,13 +289,14 @@ if a.wiggle_frames:
     # without repeated endpoints. Output is a normal 2D MP4 parallax animation.
     sys.path.insert(0, str(Path.home() / 'InjectZ/Development/Reframe'))
     from SharedStereoFormats import finish_eye, finish_stereo_card
-    try:
-        import imageio_ffmpeg
-        ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
-    except ImportError:
-        ffmpeg = shutil.which('ffmpeg')
-    if not ffmpeg:
-        raise RuntimeError('MP4 export needs FFmpeg; install it or repair the InjectZ runtime.')
+    if not a.no_wiggle_video:
+        try:
+            import imageio_ffmpeg
+            ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+        except ImportError:
+            ffmpeg = shutil.which('ffmpeg')
+        if not ffmpeg:
+            raise RuntimeError('MP4 export needs FFmpeg; install it or repair the InjectZ runtime.')
     video_path = OUTDIR / f"{PHOTO.stem}_InjectZ_SHARP_Wiggle_Baseline{BASELINE:.3f}.mp4"
     with tempfile.TemporaryDirectory(prefix='injectz-wiggle-', dir=OUTDIR) as tmp:
         folder = Path(tmp)
@@ -327,15 +330,23 @@ if a.wiggle_frames:
             if finished is not frame: finished.close()
             frame.close()
             print(f'Wiggle view {i + 1}/{total}', flush=True)
-        order = list(range(total)) + list(range(total - 2, 0, -1))
-        for i, source_index in enumerate(order):
-            os.link(folder / f'view_{source_index:04d}.png', folder / f'frame_{i:04d}.png')
-        command = [str(ffmpeg), '-y', '-loglevel', 'error', '-stream_loop', '4',
-                   '-framerate', str(a.wiggle_fps), '-i', str(folder / 'frame_%04d.png'),
-                   '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', 'libx264',
-                   '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(video_path)]
-        subprocess.run(command, check=True)
-    print(f'Wiggle animation: {video_path}', flush=True)
+        if a.export_wiggle_views:
+            views_path = OUTDIR / f'{PHOTO.stem}_InjectZ_SHARP_Views_Baseline{BASELINE:.3f}'
+            views_path.mkdir(exist_ok=False)
+            for i in range(total):
+                shutil.copyfile(folder / f'view_{i:04d}.png', views_path / f'view_{i+1:04d}.png')
+            print(f'Saved {total} left-to-right views: {views_path}', flush=True)
+        if not a.no_wiggle_video:
+            order = list(range(total)) + list(range(total - 2, 0, -1))
+            for i, source_index in enumerate(order):
+                os.link(folder / f'view_{source_index:04d}.png', folder / f'frame_{i:04d}.png')
+            command = [str(ffmpeg), '-y', '-loglevel', 'error', '-stream_loop', '4',
+                       '-framerate', str(a.wiggle_fps), '-i', str(folder / 'frame_%04d.png'),
+                       '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', 'libx264',
+                       '-pix_fmt', 'yuv420p', '-movflags', '+faststart', str(video_path)]
+            subprocess.run(command, check=True)
+    if not a.no_wiggle_video:
+        print(f'Wiggle animation: {video_path}', flush=True)
 
 label = "Parallel" if a.format == "parallel" else "Crossview"
 sbs_path = OUTDIR / f"{PHOTO.stem}_{label}_InjectZ_SHARP_Baseline{token}.png"
