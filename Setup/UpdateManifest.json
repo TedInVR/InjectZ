@@ -1,5 +1,5 @@
 {
-  "version": "0.3.15",
+  "version": "0.3.16",
   "format": 1,
   "files": {
     "App/InjectZ.swift": {
@@ -196,7 +196,7 @@
     },
     "Assets/InjectZ_User_Guide.html": {
       "algorithm": "sha256",
-      "digest": "562f309b187e0a4a6f64fa0f1e2a7e9c01b8173e4623ed17972cf8e619193138"
+      "digest": "5fbb63b2cd27fa87ddf79fa2fe4b83da71e2707c7f069cc03c3bb17b231aec6d"
     },
     "IW3/IW3SettingHelp.json": {
       "algorithm": "git-blob-sha1",
@@ -328,7 +328,7 @@
     },
     "Setup/UpdateRelease.json": {
       "algorithm": "sha256",
-      "digest": "97e54781add468deab8d4f8f72d906fd0f5851c39a64c5e993f4f40898e65b55"
+      "digest": "0ced87928d59717966d5f0201db8761cec2580fb52ef3c099153a7a46ecfc781"
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",

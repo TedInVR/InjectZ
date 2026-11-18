@@ -1,3 +1,7 @@
+# 0.3.16 — Updated user guide
+
+- Document stereo imports, export options, SHARP wigglegrams and view sequences, stereo-card frames, presets, and the Apps menu.
+
 # 0.3.15 — Related app descriptions
 
 - Add offline descriptions to the built-in Apps menu when an app is not installed.
