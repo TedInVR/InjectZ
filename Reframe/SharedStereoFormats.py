@@ -65,6 +65,45 @@ def finish_eye(image, border_percent, corner_percent):
     padding = round(scale * border_percent / 100)
     return ImageOps.expand(image, border=padding, fill='black') if padding else image
 
+def fit_card_caption(draw, title, max_width, max_height, initial_size):
+    """Wrap to at most two centered lines, scaling down to fit both bounds."""
+    def wrap(text, font):
+        lines, line = [], ''
+        for word in text.split():
+            # Split even a single unusually long word to protect both margins.
+            pieces, part = [], ''
+            for char in word:
+                trial = part + char
+                if part and draw.textbbox((0, 0), trial, font=font)[2] > max_width:
+                    pieces.append(part); part = char
+                else:
+                    part = trial
+            if part: pieces.append(part)
+            for j, piece in enumerate(pieces):
+                candidate = (line + ' ' if line and j == 0 else line) + piece
+                if line and (j > 0 or draw.textbbox((0, 0), candidate, font=font)[2] > max_width):
+                    lines.append(line); line = piece
+                else:
+                    line = candidate
+        if line: lines.append(line)
+        return lines
+
+    paths = ('/System/Library/Fonts/Supplemental/Arial.ttf',
+             '/System/Library/Fonts/Helvetica.ttc', 'DejaVuSans.ttf')
+    for size in range(max(6, initial_size), 5, -1):
+        font = None
+        for path in paths:
+            try: font = ImageFont.truetype(path, size); break
+            except OSError: continue
+        if font is None: font = ImageFont.load_default()
+        lines = wrap(title, font)
+        text = '\n'.join(lines)
+        spacing = max(1, round(size * .12))
+        bounds = draw.multiline_textbbox((0, 0), text, font=font, spacing=spacing, align='center')
+        if len(lines) <= 2 and bounds[2] - bounds[0] <= max_width and bounds[3] - bounds[1] <= max_height:
+            return text, font, spacing, bounds
+    raise ValueError('The stereo-card title is too long to fit. Please shorten it.')
+
 def finish_stereo_card(image, color, title=''):
     """Frame a finished camera view; never alter the source sent to SHARP."""
     rgb = ImageColor.getrgb(color)
@@ -75,7 +114,7 @@ def finish_stereo_card(image, color, title=''):
     unit = min(w, h)
     border = max(2, round(unit * .025))
     title = ' '.join(title.split())
-    bottom = max(border, round(unit * (.15 if title else .075)))
+    bottom = max(border, round(unit * .15)) if title else border
     # Even dimensions avoid an encoder adding a black stripe to colored cards.
     canvas_w, canvas_h = w + 2 * border, h + border + bottom
     canvas_w += canvas_w % 2; canvas_h += canvas_h % 2
@@ -93,26 +132,14 @@ def finish_stereo_card(image, color, title=''):
     canvas.paste(image, (border, border), mask)
     if title:
         painter = ImageDraw.Draw(canvas)
-        size = max(8, round(bottom * .38))
-        font = None
-        for path in ('/System/Library/Fonts/Supplemental/Arial.ttf',
-                     '/System/Library/Fonts/Helvetica.ttc', 'DejaVuSans.ttf'):
-            try: font = ImageFont.truetype(path, size); break
-            except OSError: continue
-        if font is None: font = ImageFont.load_default()
-        # Shrink long captions to keep them within the card.
-        while size > 8:
-            bounds = painter.textbbox((0, 0), title, font=font)
-            if bounds[2] - bounds[0] <= canvas_w - 4*border: break
-            size -= 1
-            try: font = ImageFont.truetype(path, size)
-            except OSError: break
-        bounds = painter.textbbox((0, 0), title, font=font)
+        text, font, spacing, bounds = fit_card_caption(
+            painter, title, max(1, round(w * .80)), max(1, round(bottom * .75)),
+            max(8, round(bottom * .38)))
         tw, th = bounds[2]-bounds[0], bounds[3]-bounds[1]
         brightness = .299*rgb[0] + .587*rgb[1] + .114*rgb[2]
         ink = (0,0,0) if brightness >= 140 else (255,255,255)
-        painter.text(((canvas_w-tw)//2-bounds[0], border+h+(bottom-th)//2-bounds[1]),
-                     title, font=font, fill=ink)
+        painter.multiline_text(((canvas_w-tw)//2-bounds[0], border+h+(bottom-th)//2-bounds[1]),
+                               text, font=font, fill=ink, spacing=spacing, align='center')
     return canvas
 
 def main():

@@ -1,3 +1,8 @@
+# 0.3.12 — Stereo-card caption layout
+
+- Match bottom border to side borders when there is no caption.
+- Fit centered captions into up to two lines with generous side margins.
+
 # 0.3.11 — Stereo-card wigglegram framing
 
 - Add optional arched card framing, background color, and caption to SHARP wigglegram exports after rendering.

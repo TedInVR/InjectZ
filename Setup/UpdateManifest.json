@@ -1,5 +1,5 @@
 {
-  "version": "0.3.11",
+  "version": "0.3.12",
   "format": 1,
   "files": {
     "App/InjectZ.swift": {
@@ -260,7 +260,7 @@
     },
     "Reframe/SharedStereoFormats.py": {
       "algorithm": "sha256",
-      "digest": "8caae69db4773262b5280c46852e9dd009383fc12b05ac4a33a7b211d3e96879"
+      "digest": "3d1e12814bff0fb1ab16032efd2af84898aadd5266e9913c4bd1e141d0fec7ef"
     },
     "Reframe/StereoAssembler.py": {
       "algorithm": "git-blob-sha1",
@@ -328,7 +328,7 @@
     },
     "Setup/UpdateRelease.json": {
       "algorithm": "sha256",
-      "digest": "d9c50e67cc56950da446afb149517e744cc3ca48f33d3f88705cccc597d04b19"
+      "digest": "4aa38921b62657470092e1128bf342cd9bf77dee01122c4c14c6ebb619122c25"
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",
