@@ -123,6 +123,8 @@ p.add_argument("--wiggle-frames", type=int, default=0, help="Number of intermedi
 p.add_argument("--wiggle-fps", type=int, default=24)
 p.add_argument("--wiggle-border", type=float, default=0)
 p.add_argument("--wiggle-corners", type=float, default=0)
+p.add_argument("--wiggle-card-color")
+p.add_argument("--wiggle-card-title", default="")
 a = p.parse_args()
 if not 0.5 <= a.edge_soften_radius <= 6 or not 0 <= a.edge_soften_strength <= 1:
     p.error("Edge radius must be 0.5–6 pixels and strength must be 0–1.")
@@ -284,7 +286,7 @@ if a.wiggle_frames:
     # One reconstruction, evenly spaced virtual cameras, and a return journey
     # without repeated endpoints. Output is a normal 2D MP4 parallax animation.
     sys.path.insert(0, str(Path.home() / 'InjectZ/Development/Reframe'))
-    from SharedStereoFormats import finish_eye
+    from SharedStereoFormats import finish_eye, finish_stereo_card
     try:
         import imageio_ffmpeg
         ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
@@ -319,7 +321,8 @@ if a.wiggle_frames:
                     x = round(2 * crop_shift * (1 - t))
                     cropped = frame.crop((x, 0, x + W, H))
                     frame.close(); frame = cropped
-            finished = finish_eye(frame, a.wiggle_border, a.wiggle_corners)
+            finished = (finish_stereo_card(frame, a.wiggle_card_color, a.wiggle_card_title)
+                        if a.wiggle_card_color else finish_eye(frame, a.wiggle_border, a.wiggle_corners))
             finished.save(folder / f'view_{i:04d}.png')
             if finished is not frame: finished.close()
             frame.close()

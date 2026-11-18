@@ -37,6 +37,8 @@ def main():
     p.add_argument("--wiggle-fps",type=int,default=24)
     p.add_argument("--wiggle-border",type=float,default=0)
     p.add_argument("--wiggle-corners",type=float,default=0)
+    p.add_argument("--wiggle-card-color")
+    p.add_argument("--wiggle-card-title",default="")
     a=p.parse_args()
 
     photo=a.photo.expanduser().resolve()
@@ -89,6 +91,8 @@ def main():
     if a.wiggle_frames:
         cmd += ["--wiggle-frames", str(a.wiggle_frames), "--wiggle-fps", str(a.wiggle_fps),
                 "--wiggle-border", str(a.wiggle_border), "--wiggle-corners", str(a.wiggle_corners)]
+        if a.wiggle_card_color:
+            cmd += ["--wiggle-card-color", a.wiggle_card_color, "--wiggle-card-title", a.wiggle_card_title]
     if a.allow_window_violations: cmd.append("--allow-window-violations")
     if a.soften_depth_edges:
         cmd += ["--soften-depth-edges", "--edge-soften-radius", str(a.edge_soften_radius),

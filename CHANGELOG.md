@@ -1,3 +1,7 @@
+# 0.3.11 — Stereo-card wigglegram framing
+
+- Add optional arched card framing, background color, and caption to SHARP wigglegram exports after rendering.
+
 # 0.3.10 — Existing stereo images and Apps menu
 
 - Import parallel, crossview, and separate stereo eyes for still exports; wigglegrams reconstruct the left eye with SHARP.

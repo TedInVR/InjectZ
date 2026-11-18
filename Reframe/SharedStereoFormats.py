@@ -6,7 +6,7 @@ https://www.site.uottawa.ca/~edubois/anaglyph/LeastSquaresHowToPhotoshop.pdf
 import argparse
 from pathlib import Path
 import numpy as np
-from PIL import Image, ImageOps, ImageDraw
+from PIL import Image, ImageOps, ImageDraw, ImageFont, ImageColor
 
 FORMATS = ('Parallel', 'Crossview', 'Anaglyph_FullColor', 'Anaglyph_HalfColor', 'Anaglyph_Dubois', 'Left_Right_Left', 'Parallel_Over_Crossview', 'LeftEye', 'RightEye')
 DUBOIS_LEFT = np.array([[.437,.449,.164],[-.062,-.062,-.024],[-.048,-.050,-.017]], dtype=np.float32)
@@ -64,6 +64,56 @@ def finish_eye(image, border_percent, corner_percent):
         image = Image.composite(image, Image.new('RGB', (w, h), 'black'), mask)
     padding = round(scale * border_percent / 100)
     return ImageOps.expand(image, border=padding, fill='black') if padding else image
+
+def finish_stereo_card(image, color, title=''):
+    """Frame a finished camera view; never alter the source sent to SHARP."""
+    rgb = ImageColor.getrgb(color)
+    if len(rgb) != 3:
+        raise ValueError('Card background must be an opaque color.')
+    image = image.convert('RGB')
+    w, h = image.size
+    unit = min(w, h)
+    border = max(2, round(unit * .025))
+    title = ' '.join(title.split())
+    bottom = max(border, round(unit * (.15 if title else .075)))
+    # Even dimensions avoid an encoder adding a black stripe to colored cards.
+    canvas_w, canvas_h = w + 2 * border, h + border + bottom
+    canvas_w += canvas_w % 2; canvas_h += canvas_h % 2
+    canvas = Image.new('RGB', (canvas_w, canvas_h), rgb)
+    # Large, symmetric top arches and independently small bottom corners.
+    mask = Image.new('L', (w, h), 0)
+    draw = ImageDraw.Draw(mask)
+    top = max(1, min(round(w * .36), h // 2))
+    foot = max(1, round(unit * .025))
+    draw.rectangle((0, top, w-1, h-foot-1), fill=255)
+    draw.rounded_rectangle((0, max(top, h-2*foot-1), w-1, h-1), radius=foot, fill=255)
+    draw.rectangle((top, 0, w-top-1, top), fill=255)
+    draw.pieslice((0, 0, 2*top, 2*top), 180, 270, fill=255)
+    draw.pieslice((w-1-2*top, 0, w-1, 2*top), 270, 360, fill=255)
+    canvas.paste(image, (border, border), mask)
+    if title:
+        painter = ImageDraw.Draw(canvas)
+        size = max(8, round(bottom * .38))
+        font = None
+        for path in ('/System/Library/Fonts/Supplemental/Arial.ttf',
+                     '/System/Library/Fonts/Helvetica.ttc', 'DejaVuSans.ttf'):
+            try: font = ImageFont.truetype(path, size); break
+            except OSError: continue
+        if font is None: font = ImageFont.load_default()
+        # Shrink long captions to keep them within the card.
+        while size > 8:
+            bounds = painter.textbbox((0, 0), title, font=font)
+            if bounds[2] - bounds[0] <= canvas_w - 4*border: break
+            size -= 1
+            try: font = ImageFont.truetype(path, size)
+            except OSError: break
+        bounds = painter.textbbox((0, 0), title, font=font)
+        tw, th = bounds[2]-bounds[0], bounds[3]-bounds[1]
+        brightness = .299*rgb[0] + .587*rgb[1] + .114*rgb[2]
+        ink = (0,0,0) if brightness >= 140 else (255,255,255)
+        painter.text(((canvas_w-tw)//2-bounds[0], border+h+(bottom-th)//2-bounds[1]),
+                     title, font=font, fill=ink)
+    return canvas
 
 def main():
     p = argparse.ArgumentParser()

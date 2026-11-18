@@ -4,8 +4,8 @@
   "CFBundleName": "InjectZ",
   "CFBundleDisplayName": "Inject Z",
   "CFBundleIconFile": "InjectZ",
-  "CFBundleShortVersionString": "0.3.10",
-  "CFBundleVersion": "0.3.10",
+  "CFBundleShortVersionString": "0.3.11",
+  "CFBundleVersion": "0.3.11",
   "LSMinimumSystemVersion": "13.0",
   "NSHighResolutionCapable": true
 }

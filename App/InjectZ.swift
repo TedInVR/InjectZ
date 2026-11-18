@@ -60,11 +60,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var wiggleOption: NSButton!
     var wiggleFrames: NSPopUpButton!
     var wiggleFPS: NSPopUpButton!
+    var wiggleCard: NSButton!
+    var wiggleCardColor: NSColorWell!
+    var wiggleCardTitle: NSTextField!
     var additionalSection: NSView!
     var additionalToggle: NSButton!
     var elevatedViews: [NSView] = []
     var additionalExpanded = false
     let presetsKey = "InjectZConversionPresetsV1"
+    func cardColorHex() -> String {
+        let c = wiggleCardColor.color.usingColorSpace(.sRGB) ?? .black
+        func byte(_ x: CGFloat) -> Int { Int((min(1, max(0, x)) * 255).rounded()) }
+        return String(format: "#%02X%02X%02X", byte(c.redComponent), byte(c.greenComponent), byte(c.blueComponent))
+    }
     func finishingArguments() -> [String] {
         let borders = [0, 1, 2, 5, 10]
         let corners = [0, 2, 5, 10, 20]
@@ -501,7 +509,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 label.removeFromSuperview()
             }
         }
-        additionalSection = NSView(frame: NSRect(x: 0, y: 115, width: 600, height: 205))
+        additionalSection = NSView(frame: NSRect(x: 0, y: 115, width: 600, height: 255))
         c.addSubview(additionalSection)
         func inSection(_ view: NSView, _ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat = 25) {
             view.removeFromSuperview(); view.frame = NSRect(x: x, y: y, width: w, height: h)
@@ -533,6 +541,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         inSection(presetPopup, 75, 34, 190, 30)
         inSection(savePresetButton, 270, 34, 165, 30)
         inSection(deletePresetButton, 440, 34, 100, 30)
+        for view in additionalSection.subviews {
+            view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + 50))
+        }
+        wiggleCard = NSButton(checkboxWithTitle: "Stereo-card frame", target: nil, action: nil)
+        wiggleCard.toolTip = "Frame each finished wigglegram view after SHARP rendering."
+        inSection(wiggleCard, 20, 45, 180)
+        wiggleCardColor = NSColorWell(frame: .zero)
+        wiggleCardColor.color = NSColor(srgbRed: 0.88, green: 0.79, blue: 0.62, alpha: 1)
+        wiggleCardColor.toolTip = "Stereo-card background color"
+        inSection(wiggleCardColor, 202, 41, 48, 30)
+        let titleLabel = NSTextField(labelWithString: "Title")
+        inSection(titleLabel, 260, 45, 45)
+        wiggleCardTitle = NSTextField(frame: .zero)
+        wiggleCardTitle.placeholderString = "Optional caption"
+        inSection(wiggleCardTitle, 305, 42, 250, 26)
         additionalSection.isHidden = true
         additionalToggle = NSButton(title: "▸ Additional Export Options", target: self, action: #selector(toggleAdditional))
         additionalToggle.frame = NSRect(x: 25, y: 121, width: 245, height: 27)
@@ -548,7 +571,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func toggleAdditional() {
-        let delta: CGFloat = additionalExpanded ? -205 : 205
+        let delta: CGFloat = additionalExpanded ? -255 : 255
         additionalExpanded.toggle()
         for view in elevatedViews { view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + delta)) }
         additionalSection.isHidden = !additionalExpanded
@@ -557,7 +580,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         var frame = window.frame
         frame.origin.y -= delta; frame.size.height += delta
         window.setFrame(frame, display: true, animate: true)
-        if additionalExpanded { window.contentMinSize = NSSize(width: 600, height: 675) }
+        if additionalExpanded { window.contentMinSize = NSSize(width: 600, height: 725) }
     }
 
     func allPresets() -> [String: [String: Any]] {
@@ -617,6 +640,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             "wiggle": wiggleOption.state == .on,
             "wiggleFrames": wiggleFrames.indexOfSelectedItem,
             "wiggleFPS": wiggleFPS.indexOfSelectedItem,
+            "wiggleCard": wiggleCard.state == .on,
+            "wiggleCardColor": cardColorHex(),
+            "wiggleCardTitle": wiggleCardTitle.stringValue,
             "method": methodPopup.titleOfSelectedItem ?? "forward_inpaint",
             "convergence": convergenceField.stringValue,
             "foreground": foregroundField.stringValue,
@@ -655,6 +681,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         wiggleOption.state = (p["wiggle"] as? Bool ?? false) ? .on : .off
         if let value = p["wiggleFrames"] as? Int, (0..<wiggleFrames.numberOfItems).contains(value) { wiggleFrames.selectItem(at: value) }
         if let value = p["wiggleFPS"] as? Int, (0..<wiggleFPS.numberOfItems).contains(value) { wiggleFPS.selectItem(at: value) }
+        wiggleCard.state = (p["wiggleCard"] as? Bool ?? false) ? .on : .off
+        wiggleCardTitle.stringValue = p["wiggleCardTitle"] as? String ?? ""
+        if let hex = p["wiggleCardColor"] as? String, hex.hasPrefix("#"), hex.count == 7,
+           let value = Int(hex.dropFirst(), radix: 16) {
+            wiggleCardColor.color = NSColor(srgbRed: CGFloat((value >> 16) & 255) / 255,
+                                           green: CGFloat((value >> 8) & 255) / 255,
+                                           blue: CGFloat(value & 255) / 255, alpha: 1)
+        }
         edgeValuesChanged()
         if let method = p["method"] as? String, methodPopup.itemTitles.contains(method) { methodPopup.selectItem(withTitle: method) }
         convergenceField.stringValue = p["convergence"] as? String ?? "0.25"
@@ -1209,6 +1243,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 args += ["--wiggle-frames", wiggleFrames.titleOfSelectedItem ?? "8",
                          "--wiggle-fps", ["12", "24", "30", "60"][max(0, wiggleFPS.indexOfSelectedItem)],
                          "--wiggle-border", finish[1], "--wiggle-corners", finish[3]]
+                if wiggleCard.state == .on {
+                    args += ["--wiggle-card-color", cardColorHex(), "--wiggle-card-title", wiggleCardTitle.stringValue]
+                }
             }
             if softenSharpEdges?.state == .on {
                 args += ["--soften-depth-edges", "--edge-soften-radius", String(edgeRadius?.doubleValue ?? 2),
