@@ -42,6 +42,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var pendingLaunchPhoto: URL?
 
     var window: NSWindow!
+    var automaticUpdateItems: [NSMenuItem] = []
     var sharpDepthEditor: SharpDepthEditorController?
     var sharpDepthEditorButton: NSButton!
     var photoField: NSTextField!
@@ -156,7 +157,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         InjectZUpdates.shared.check(owner: self)
     }
     @objc func toggleAutomaticInjectZUpdates(_ sender: NSMenuItem) {
-        InjectZUpdates.shared.setAutomatic(sender)
+        for item in automaticUpdateItems { item.isEnabled = false }
+        InjectZUpdates.shared.setAutomatic(sender) { value in
+            for item in self.automaticUpdateItems {
+                if let value = value { item.state = value ? .on : .off }
+                item.isEnabled = true
+            }
+        }
     }
 
     @objc func showInjectZAbout(_ sender: Any?) {
@@ -221,6 +228,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let automaticItem = NSMenuItem(title: "Automatically Update While Closed", action: #selector(toggleAutomaticInjectZUpdates(_:)), keyEquivalent: "")
         automaticItem.target = self; automaticItem.state = InjectZUpdates.automatic ? .on : .off
         appMenu.addItem(automaticItem)
+        automaticUpdateItems.append(automaticItem)
         let audioItem = NSMenuItem(title: "Audio Alerts…", action: #selector(InjectZAudioAlerts.showSettings), keyEquivalent: "")
         audioItem.target = InjectZAudioAlerts.shared
         appMenu.addItem(audioItem)
@@ -264,6 +272,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         supportGuideItem.keyEquivalentModifierMask = [.command]
         supportGuideItem.target = self
         supportHelpMenu.addItem(supportGuideItem)
+        supportHelpMenu.addItem(NSMenuItem.separator())
+        let helpUpdateItem = NSMenuItem(title: "Check for Updates…", action: #selector(checkForInjectZUpdates(_:)), keyEquivalent: "")
+        helpUpdateItem.target = self
+        supportHelpMenu.addItem(helpUpdateItem)
+        let helpAutomaticItem = NSMenuItem(title: "Automatically Update While Closed", action: #selector(toggleAutomaticInjectZUpdates(_:)), keyEquivalent: "")
+        helpAutomaticItem.target = self
+        helpAutomaticItem.state = InjectZUpdates.automatic ? .on : .off
+        supportHelpMenu.addItem(helpAutomaticItem)
+        automaticUpdateItems.append(helpAutomaticItem)
         supportHelpMenu.addItem(NSMenuItem.separator())
         let supportMenuItem = NSMenuItem(title: "Support Inject Z…", action: #selector(InjectZSupportPanel.showSupport(_:)), keyEquivalent: "")
         supportMenuItem.target = InjectZSupportPanel.shared
@@ -2467,11 +2484,13 @@ final class InjectZUpdates {
             if let error = result["error"] as? String { NSLog("Inject Z updater registration: %@", error) }
         }
     }
-    func setAutomatic(_ item: NSMenuItem) {
+    func setAutomatic(_ item: NSMenuItem, completion: @escaping (Bool?) -> Void) {
         let value = item.state != .on
         execute(["--set-automatic", value ? "yes" : "no"]) { result in
-            if let error = result["error"] as? String { self.show("Could not change automatic updates", error) }
-            else { item.state = value ? .on : .off }
+            if let error = result["error"] as? String {
+                self.show("Could not change automatic updates", error)
+                completion(nil)
+            } else { completion(value) }
         }
     }
     private func busy(_ owner: AppDelegate) -> Bool {

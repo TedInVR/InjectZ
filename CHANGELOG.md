@@ -1,3 +1,7 @@
+# 0.3.9 — Update options in Help
+
+- Show update commands in both Help and Inject Z menus, keeping automatic-update checks synchronized.
+
 # 0.3.8 — Multi-frame wigglegram and simplified controls
 
 - Add optional SHARP MP4 animation with intermediate-view and frame-rate controls.

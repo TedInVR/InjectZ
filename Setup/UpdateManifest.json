@@ -1,10 +1,10 @@
 {
-  "version": "0.3.8",
+  "version": "0.3.9",
   "format": 1,
   "files": {
     "App/InjectZ.swift": {
       "algorithm": "sha256",
-      "digest": "fde5a338145c98c75f106d8da64fee5a9601107a4fb3145b1a2c9ec92d91bfdf"
+      "digest": "5e71e38d829bcac40a19dc7ba21370f15aae2db27db4c2b9927e5988fa3d1bcd"
     },
     "Assets/AudioAlerts/Inject Z Conversion Complete - usesuno.com.m4a": {
       "algorithm": "git-blob-sha1",
@@ -328,7 +328,7 @@
     },
     "Setup/UpdateRelease.json": {
       "algorithm": "sha256",
-      "digest": "bc418dcf1390ef828161363ddf2de82d5e3f535b4b6d703153bd2a75334e345a"
+      "digest": "750a48d20337722f0af4cd51c9a57865b458dfbac095123ae10fc7e7f847b959"
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",
