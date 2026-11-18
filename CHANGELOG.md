@@ -1,3 +1,9 @@
+# 0.3.14 — Export SHARP view sequences
+
+- Export numbered, lossless, left-to-right PNG views with both endpoints; select up to 60 intermediate views.
+- Save view sequences, wiggle videos, or both, and retain compatibility with existing presets.
+- Locate installed built-in apps and remember the location without duplicate menu items.
+
 # 0.3.13 — Stereo-card frames for still exports
 
 - Apply the selected card color, arch and caption consistently to every stereo still format and separate eyes.

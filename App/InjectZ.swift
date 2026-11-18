@@ -58,6 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var cornersPopup: NSPopUpButton!
     var presetPopup: NSPopUpButton!
     var wiggleOption: NSButton!
+    var wiggleViews: NSButton!
     var wiggleFrames: NSPopUpButton!
     var wiggleFPS: NSPopUpButton!
     var wiggleCard: NSButton!
@@ -101,6 +102,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var stereoRightEye: URL?
     var relatedAppsMenu: NSMenu!
     let relatedAppsKey = "InjectZRelatedAppsV1"
+    let builtInAppLocationsKey = "InjectZBuiltInAppLocationsV1"
     var lastOutput: URL?
     var sharpEdgesButton: NSButton!
     var sharpEdgesPanel: NSPanel?
@@ -511,7 +513,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 label.removeFromSuperview()
             }
         }
-        additionalSection = NSView(frame: NSRect(x: 0, y: 115, width: 600, height: 255))
+        additionalSection = NSView(frame: NSRect(x: 0, y: 115, width: 600, height: 290))
         c.addSubview(additionalSection)
         func inSection(_ view: NSView, _ x: CGFloat, _ y: CGFloat, _ w: CGFloat, _ h: CGFloat = 25) {
             view.removeFromSuperview(); view.frame = NSRect(x: x, y: y, width: w, height: h)
@@ -533,7 +535,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let framesLabel = NSTextField(labelWithString: "Middle frames")
         inSection(framesLabel, 290, 78, 100)
         wiggleFrames = NSPopUpButton(frame: .zero)
-        wiggleFrames.addItems(withTitles: ["4", "8", "16", "32"]); wiggleFrames.selectItem(at: 1)
+        wiggleFrames.addItems(withTitles: ["4", "8", "16", "20", "24", "25", "32", "48", "50", "60"]); wiggleFrames.selectItem(at: 1)
+        wiggleFrames.toolTip = "The exported sequence includes both end views in addition to these middle views."
         inSection(wiggleFrames, 390, 75, 62, 30)
         wiggleFPS = NSPopUpButton(frame: .zero)
         wiggleFPS.addItems(withTitles: ["12 fps", "24 fps", "30 fps", "60 fps"]); wiggleFPS.selectItem(at: 1)
@@ -544,8 +547,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         inSection(savePresetButton, 270, 34, 165, 30)
         inSection(deletePresetButton, 440, 34, 100, 30)
         for view in additionalSection.subviews {
-            view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + 50))
+            view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + 85))
         }
+        wiggleViews = NSButton(checkboxWithTitle: "Export all views as PNGs", target: nil, action: nil)
+        wiggleViews.toolTip = "Save one numbered left-to-right sequence including both end views; no interlacing is performed."
+        inSection(wiggleViews, 20, 82, 280)
         wiggleCard = NSButton(checkboxWithTitle: "Stereo-card frame", target: nil, action: nil)
         wiggleCard.toolTip = "Frame all finished stereo exports and wigglegram views after rendering."
         inSection(wiggleCard, 20, 45, 180)
@@ -573,7 +579,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc func toggleAdditional() {
-        let delta: CGFloat = additionalExpanded ? -255 : 255
+        let delta: CGFloat = additionalExpanded ? -290 : 290
         additionalExpanded.toggle()
         for view in elevatedViews { view.setFrameOrigin(NSPoint(x: view.frame.origin.x, y: view.frame.origin.y + delta)) }
         additionalSection.isHidden = !additionalExpanded
@@ -582,7 +588,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         var frame = window.frame
         frame.origin.y -= delta; frame.size.height += delta
         window.setFrame(frame, display: true, animate: true)
-        if additionalExpanded { window.contentMinSize = NSSize(width: 600, height: 725) }
+        if additionalExpanded { window.contentMinSize = NSSize(width: 600, height: 760) }
     }
 
     func allPresets() -> [String: [String: Any]] {
@@ -640,7 +646,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             "edgeRadius": edgeRadius?.doubleValue ?? 2,
             "edgeStrength": edgeStrength?.doubleValue ?? 0.35,
             "wiggle": wiggleOption.state == .on,
+            "wiggleViews": wiggleViews.state == .on,
             "wiggleFrames": wiggleFrames.indexOfSelectedItem,
+            "wiggleFramesValue": wiggleFrames.titleOfSelectedItem ?? "8",
             "wiggleFPS": wiggleFPS.indexOfSelectedItem,
             "wiggleCard": wiggleCard.state == .on,
             "wiggleCardColor": cardColorHex(),
@@ -681,7 +689,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         edgeRadius?.doubleValue = p["edgeRadius"] as? Double ?? 2
         edgeStrength?.doubleValue = p["edgeStrength"] as? Double ?? 0.35
         wiggleOption.state = (p["wiggle"] as? Bool ?? false) ? .on : .off
-        if let value = p["wiggleFrames"] as? Int, (0..<wiggleFrames.numberOfItems).contains(value) { wiggleFrames.selectItem(at: value) }
+        wiggleViews.state = (p["wiggleViews"] as? Bool ?? false) ? .on : .off
+        if let value = p["wiggleFramesValue"] as? String, wiggleFrames.itemTitles.contains(value) {
+            wiggleFrames.selectItem(withTitle: value)
+        } else if let index = p["wiggleFrames"] as? Int, (0..<4).contains(index) {
+            wiggleFrames.selectItem(withTitle: ["4", "8", "16", "32"][index])
+        }
         if let value = p["wiggleFPS"] as? Int, (0..<wiggleFPS.numberOfItems).contains(value) { wiggleFPS.selectItem(at: value) }
         wiggleCard.state = (p["wiggleCard"] as? Bool ?? false) ? .on : .off
         wiggleCardTitle.stringValue = p["wiggleCardTitle"] as? String ?? ""
@@ -949,7 +962,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ]
         for (name, names, link) in builtins {
             let item = NSMenuItem(title: name + "…", action: #selector(openRelatedApp(_:)), keyEquivalent: "")
-            item.target = self; item.representedObject = ["names": names, "url": link]
+            item.target = self; item.representedObject = ["builtinID": name, "names": names, "url": link]
             menu.addItem(item)
         }
         let custom = UserDefaults.standard.array(forKey: relatedAppsKey) as? [[String: String]] ?? []
@@ -971,6 +984,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc func openRelatedApp(_ sender: NSMenuItem) {
         guard let info = sender.representedObject as? [String: Any] else { return }
         var paths: [URL] = []
+        if let id = info["builtinID"] as? String,
+           let locations = UserDefaults.standard.dictionary(forKey: builtInAppLocationsKey) as? [String: String],
+           let location = locations[id] {
+            paths.append(URL(fileURLWithPath: location))
+        }
         if let path = info["path"] as? String { paths.append(URL(fileURLWithPath: path)) }
         if let names = info["names"] as? [String] {
             for name in names { paths.append(URL(fileURLWithPath: "/Applications").appendingPathComponent(name)) }
@@ -980,10 +998,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         let link = info["url"] as? String ?? ""
         let alert = NSAlert(); alert.messageText = "\(sender.title.replacingOccurrences(of: "…", with: "")) was not found"
-        alert.informativeText = link.isEmpty ? "If it is installed elsewhere, use Apps → Add an App to locate it. A public download is not yet available." : "Open the project's GitHub page for its download and installation instructions. If it is already installed elsewhere, use Apps → Add an App."
-        if !link.isEmpty { alert.addButton(withTitle: "Open Project Page") }
-        alert.addButton(withTitle: "OK")
-        if alert.runModal() == .alertFirstButtonReturn, let url = URL(string: link), !link.isEmpty { NSWorkspace.shared.open(url) }
+        if let id = info["builtinID"] as? String, !link.isEmpty {
+            alert.informativeText = "Download the app, or locate it if it is already installed. Inject Z will remember its location."
+            alert.addButton(withTitle: "Download from GitHub")
+            alert.addButton(withTitle: "Navigate to it")
+            alert.addButton(withTitle: "OK")
+            let choice = alert.runModal()
+            if choice == .alertFirstButtonReturn, let url = URL(string: link) { NSWorkspace.shared.open(url) }
+            if choice == .alertSecondButtonReturn { locateBuiltInApp(id) }
+        } else {
+            alert.informativeText = "This app shortcut points to a missing file. Remove the shortcut or add the app at its new location."
+            alert.addButton(withTitle: "OK"); alert.runModal()
+        }
+    }
+
+    func locateBuiltInApp(_ id: String) {
+        let picker = NSOpenPanel()
+        picker.message = "Locate \(id) on your Mac."
+        picker.allowedContentTypes = [.applicationBundle]
+        picker.canChooseFiles = true; picker.canChooseDirectories = false
+        picker.allowsMultipleSelection = false
+        guard picker.runModal() == .OK, let url = picker.url else { return }
+        var locations = UserDefaults.standard.dictionary(forKey: builtInAppLocationsKey) as? [String: String] ?? [:]
+        locations[id] = url.path
+        UserDefaults.standard.set(locations, forKey: builtInAppLocationsKey)
+        // The old workaround created a second menu item. Remove that shortcut
+        // only when it points to the exact app just linked to this built-in.
+        var custom = UserDefaults.standard.array(forKey: relatedAppsKey) as? [[String: String]] ?? []
+        custom.removeAll { entry in
+            guard let path = entry["path"] else { return false }
+            return URL(fileURLWithPath: path).standardizedFileURL == url.standardizedFileURL
+        }
+        UserDefaults.standard.set(custom, forKey: relatedAppsKey)
+        refreshRelatedApps()
+        if !NSWorkspace.shared.open(url) {
+            let alert = NSAlert(); alert.messageText = "The app could not be opened"
+            alert.informativeText = "Its location was saved. Check that the selected application opens on this Mac."
+            alert.runModal()
+        }
     }
 
     @objc func addRelatedApp() {
@@ -1121,7 +1173,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         let formats = selectedFormats() + (stereoInputFormat == nil && enginePopup.indexOfSelectedItem == 0 && keepEyes.state == .on ? ["LeftEye", "RightEye"] : [])
-        let wantsWiggle = wiggleOption.state == .on && !depthMapOnly
+        let wantsAnimation = wiggleOption.state == .on && !depthMapOnly
+        let wantsViews = wiggleViews.state == .on && !depthMapOnly
+        let wantsWiggle = wantsAnimation || wantsViews
         var workingPhoto = originalPhoto
         var importedOutputs: [URL] = []
         if let inputFormat = stereoInputFormat {
@@ -1248,6 +1302,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 if wiggleCard.state == .on {
                     args += ["--wiggle-card-color", cardColorHex(), "--wiggle-card-title", wiggleCardTitle.stringValue]
                 }
+                if wantsViews { args.append("--export-wiggle-views") }
+                if !wantsAnimation { args.append("--no-wiggle-video") }
             }
             if softenSharpEdges?.state == .on {
                 args += ["--soften-depth-edges", "--edge-soften-radius", String(edgeRadius?.doubleValue ?? 2),
@@ -1369,13 +1425,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                 result = emitted?.first
                                 if emitted == nil { completionNote = " (format generation failed; internal parallel render retained)" }
                             }
-                            if wantsWiggle {
+                            if wantsAnimation {
                                 let video = outputDir.appendingPathComponent("\(stem)_InjectZ_SHARP_Wiggle_Baseline\(baseline).mp4")
                                 if fm.fileExists(atPath: video.path) {
                                     let destination = unusedDestination("\(originalPhoto.deletingPathExtension().lastPathComponent)_InjectZ_SHARP_MultiFrameWiggle_Depth\(baseline)", "mp4")
                                     do { try fm.copyItem(at: video, to: destination); if result == nil { result = destination } }
                                     catch { completionNote += " (wiggle could not be copied to the photo folder)" }
                                 } else { completionNote += " (wiggle output was not found)" }
+                            }
+                            if wantsViews {
+                                let views = outputDir.appendingPathComponent("\(stem)_InjectZ_SHARP_Views_Baseline\(baseline)", isDirectory: true)
+                                let base = "\(originalPhoto.deletingPathExtension().lastPathComponent)_InjectZ_SHARP_Views_Depth\(baseline)"
+                                var destination = photoFolder.appendingPathComponent(base, isDirectory: true)
+                                var number = 2
+                                while fm.fileExists(atPath: destination.path) {
+                                    destination = photoFolder.appendingPathComponent("\(base)_\(number)", isDirectory: true)
+                                    number += 1
+                                }
+                                if fm.fileExists(atPath: views.path) {
+                                    do {
+                                        try fm.copyItem(at: views, to: destination)
+                                        if result == nil { result = destination.appendingPathComponent("view_0001.png") }
+                                    } catch { completionNote += " (view sequence could not be copied to the photo folder)" }
+                                } else { completionNote += " (view sequence was not found)" }
                             }
                         }
                     }
