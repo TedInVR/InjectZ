@@ -4,6 +4,38 @@ import Cocoa
 import UniformTypeIdentifiers
 import ApplicationServices
 
+// Coordinates correspond to the upright image, normalized from its top-left.
+final class WigglePivotImageView: NSView {
+    let picture: NSImage
+    var selection: NSPoint?
+    init(image: NSImage, frame: NSRect) { picture = image; super.init(frame: frame) }
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+    var imageRect: NSRect {
+        let size = picture.size
+        guard size.width > 0, size.height > 0 else { return .zero }
+        let scale = min(bounds.width / size.width, bounds.height / size.height)
+        let w = size.width * scale, h = size.height * scale
+        return NSRect(x: (bounds.width-w)/2, y: (bounds.height-h)/2, width: w, height: h)
+    }
+    override func draw(_ dirtyRect: NSRect) {
+        NSColor.black.setFill(); bounds.fill()
+        let r = imageRect
+        picture.draw(in: r, from: .zero, operation: .sourceOver, fraction: 1)
+        if let p = selection {
+            let center = NSPoint(x: r.minX + p.x * r.width, y: r.maxY - p.y * r.height)
+            NSColor.systemRed.setStroke()
+            let marker = NSBezierPath(ovalIn: NSRect(x: center.x-8, y: center.y-8, width: 16, height: 16))
+            marker.lineWidth = 3; marker.stroke()
+        }
+    }
+    override func mouseDown(with event: NSEvent) {
+        let point = convert(event.locationInWindow, from: nil), r = imageRect
+        guard r.contains(point), r.width > 0, r.height > 0 else { return }
+        selection = NSPoint(x: (point.x-r.minX)/r.width, y: (r.maxY-point.y)/r.height)
+        needsDisplay = true
+    }
+}
+
 final class DropView: NSView {
     var onDrop: (([URL]) -> Void)?
 
@@ -1353,6 +1385,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
                 if wantsViews { args.append("--export-wiggle-views") }
                 if !wantsAnimation { args.append("--no-wiggle-video") }
+                args += ["--wiggle-pivot-request", outputDir.appendingPathComponent("wiggle-pivot.request").path]
             }
             if softenSharpEdges?.state == .on {
                 args += ["--soften-depth-edges", "--edge-soften-radius", String(edgeRadius?.doubleValue ?? 2),
@@ -1393,6 +1426,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.makeKeyAndOrderFront(nil)
             return
         }
+        var pivotTimer: Timer?
+        if wantsWiggle && !isIW3 {
+            let request = outputDir.appendingPathComponent("wiggle-pivot.request")
+            let response = outputDir.appendingPathComponent("wiggle-pivot.response")
+            pivotTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { timer in
+                guard FileManager.default.fileExists(atPath: request.path) else { return }
+                timer.invalidate()
+                self.statusLabel.stringValue = "Choose the part to keep steady in the wigglegram."
+                var choice: [String: Any] = ["mode": "cancel"]
+                if let image = NSImage(contentsOf: photo) {
+                    let panel = NSAlert()
+                    panel.messageText = "Choose the wigglegram pivot"
+                    panel.informativeText = "Click the person or object you want to stay steady. The animation may be cropped at the sides. This does not change your still stereo exports."
+                    let view = WigglePivotImageView(image: image, frame: NSRect(x: 0, y: 0, width: 620, height: 450))
+                    panel.accessoryView = view
+                    panel.addButton(withTitle: "Use Selected Point")
+                    panel.addButton(withTitle: "Use Automatic")
+                    panel.addButton(withTitle: "Cancel")
+                    NSRunningApplication.current.activate(options: [])
+                    while true {
+                        let result = panel.runModal()
+                        if result == .alertFirstButtonReturn {
+                            guard let p = view.selection else { NSSound.beep(); continue }
+                            choice = ["mode": "point", "x": Double(p.x), "y": Double(p.y)]
+                        } else if result == .alertSecondButtonReturn { choice = ["mode": "automatic"] }
+                        break
+                    }
+                }
+                if let data = try? JSONSerialization.data(withJSONObject: choice) {
+                    do { try data.write(to: response, options: .atomic) }
+                    catch {
+                        self.statusLabel.stringValue = "Could not send pivot selection: \(error.localizedDescription)"
+                        if task.isRunning { task.terminate() }
+                    }
+                }
+            }
+        }
         DispatchQueue.global(qos: .userInitiated).async {
             task.waitUntilExit()
             if existingStereo {
@@ -1408,6 +1478,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let text = String(data: captured, encoding: .utf8) ?? ""
             logLock.unlock()
             DispatchQueue.main.async {
+                pivotTimer?.invalidate()
                 self.convertButton.isEnabled = true
                 self.depthMapButton.isEnabled = isIW3
                 if task.terminationStatus == 0 {

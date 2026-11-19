@@ -41,6 +41,7 @@ def main():
     p.add_argument("--wiggle-card-title",default="")
     p.add_argument("--export-wiggle-views",action="store_true")
     p.add_argument("--no-wiggle-video",action="store_true")
+    p.add_argument("--wiggle-pivot-request",type=Path)
     a=p.parse_args()
 
     photo=a.photo.expanduser().resolve()
@@ -97,6 +98,7 @@ def main():
             cmd += ["--wiggle-card-color", a.wiggle_card_color, "--wiggle-card-title", a.wiggle_card_title]
         if a.export_wiggle_views: cmd.append("--export-wiggle-views")
         if a.no_wiggle_video: cmd.append("--no-wiggle-video")
+        if a.wiggle_pivot_request: cmd += ["--wiggle-pivot-request", str(a.wiggle_pivot_request)]
     if a.allow_window_violations: cmd.append("--allow-window-violations")
     if a.soften_depth_edges:
         cmd += ["--soften-depth-edges", "--edge-soften-radius", str(a.edge_soften_radius),

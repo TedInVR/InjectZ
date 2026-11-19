@@ -1,10 +1,10 @@
 {
-  "version": "0.3.16",
+  "version": "0.3.17",
   "format": 1,
   "files": {
     "App/InjectZ.swift": {
       "algorithm": "sha256",
-      "digest": "a499bf6aa888499592242c197b70100ed244ffff9ba5baa5fd84525148d73a18"
+      "digest": "5d4cec23d2aa3b0eec5a8099e9bc7e03c5151dcb3009c92de6261e08f3795f34"
     },
     "Assets/AudioAlerts/Inject Z Conversion Complete - usesuno.com.m4a": {
       "algorithm": "git-blob-sha1",
@@ -196,7 +196,7 @@
     },
     "Assets/InjectZ_User_Guide.html": {
       "algorithm": "sha256",
-      "digest": "5fbb63b2cd27fa87ddf79fa2fe4b83da71e2707c7f069cc03c3bb17b231aec6d"
+      "digest": "5ca64dbaf02ccdf2881f1ea801d4bf33f9ab8e361e22c80cf944a7ac30d8b672"
     },
     "IW3/IW3SettingHelp.json": {
       "algorithm": "git-blob-sha1",
@@ -276,11 +276,11 @@
     },
     "SHARP/injectz_engine.py": {
       "algorithm": "sha256",
-      "digest": "ba6bf7e924c827115c29c92c433ccd68b2f409320e42d4439a4e95cf5f051c08"
+      "digest": "399eb5ba01d01c3aba36b679ed421ffb2d2dedcc0b348fba7d0aa154f0cf9b12"
     },
     "SHARP/injectz_sharp_render.py": {
       "algorithm": "sha256",
-      "digest": "c27af75ca29b2f9b6d6d8c317a55d15a6f23cc6d2b769793fc50229abe7d723a"
+      "digest": "ef123ea6c8d1e2be10c4a5e070779857e855d44dfd4089a832870d6ffb20b989"
     },
     "SHARPDepthEditor/background_repair.py": {
       "algorithm": "git-blob-sha1",
@@ -328,11 +328,15 @@
     },
     "Setup/UpdateRelease.json": {
       "algorithm": "sha256",
-      "digest": "0ced87928d59717966d5f0201db8761cec2580fb52ef3c099153a7a46ecfc781"
+      "digest": "01a0ca5390a4aa59588137ad7b393598a5b07a01e95329d0a65e8a32f53ae76a"
     },
     "Setup/injectz_update.py": {
       "algorithm": "sha256",
       "digest": "1d6873f210bd4777fddbf24a82783d0b930485a1af2c977c24dcdb30c1583a5d"
+    },
+    "SHARP/wiggle_pivot.py": {
+      "algorithm": "sha256",
+      "digest": "8f60f512e03c01fdca0d3a2416d086fd6fce623a0101bdd6e28adfba37563d85"
     }
   }
 }

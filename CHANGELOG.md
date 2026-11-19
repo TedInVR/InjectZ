@@ -1,3 +1,7 @@
+# 0.3.17 — Wigglegram pivot selection
+
+- Choose a point to keep approximately steady in SHARP wigglegrams and exported views, or retain automatic alignment.
+
 # 0.3.16 — Updated user guide
 
 - Document stereo imports, export options, SHARP wigglegrams and view sequences, stereo-card frames, presets, and the Apps menu.

@@ -4,12 +4,14 @@ InjectZ SHARP/metal-gauss renderer helper v0.2.5
 Known-good automatic stereo-window algorithm integrated with normal InjectZ output.
 """
 import argparse
+import json
 import math
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 import numpy as np
 import torch
@@ -127,6 +129,7 @@ p.add_argument("--wiggle-card-color")
 p.add_argument("--wiggle-card-title", default="")
 p.add_argument("--export-wiggle-views", action="store_true")
 p.add_argument("--no-wiggle-video", action="store_true")
+p.add_argument("--wiggle-pivot-request", type=Path)
 a = p.parse_args()
 if not 0.5 <= a.edge_soften_radius <= 6 or not 0 <= a.edge_soften_strength <= 1:
     p.error("Edge radius must be 0.5–6 pixels and strength must be 0–1.")
@@ -298,11 +301,53 @@ if a.wiggle_frames:
         if not ffmpeg:
             raise RuntimeError('MP4 export needs FFmpeg; install it or repair the InjectZ runtime.')
     video_path = OUTDIR / f"{PHOTO.stem}_InjectZ_SHARP_Wiggle_Baseline{BASELINE:.3f}.mp4"
+    pivot_width = None
+    pivot_offsets = None
+    if a.wiggle_pivot_request:
+        request = a.wiggle_pivot_request
+        response = request.with_suffix('.response')
+        request.write_text(json.dumps({'photo': str(PHOTO)}))
+        print('Waiting for wiggle pivot selection...', flush=True)
+        deadline = time.monotonic() + 1800
+        while not response.exists():
+            if time.monotonic() > deadline:
+                raise RuntimeError('Timed out waiting for pivot selection.')
+            time.sleep(.15)
+        choice = json.loads(response.read_text())
+        if choice.get('mode') == 'cancel':
+            raise SystemExit('Wigglegram cancelled by user.')
+        if choice.get('mode') == 'point':
+            from wiggle_pivot import estimate_pivot_depth, pivot_crop_positions
+            z_pivot = estimate_pivot_depth(sp.means.detach().cpu().numpy(),
+                sp.opacities.detach().cpu().numpy(), K.detach().cpu().numpy(),
+                original_w, H, float(choice['x']), float(choice['y']))
+            pivot_width, pivot_offsets = pivot_crop_positions(float(K[0,0]), BASELINE,
+                z_pivot, original_w, a.wiggle_frames + 2)
+            print(f'Wiggle pivot depth: {z_pivot:.4f}; common width: {pivot_width}px', flush=True)
+        elif choice.get('mode') != 'automatic':
+            raise RuntimeError('Invalid pivot selection.')
     with tempfile.TemporaryDirectory(prefix='injectz-wiggle-', dir=OUTDIR) as tmp:
         folder = Path(tmp)
         total = a.wiggle_frames + 2
         for i in range(total):
-            if i == 0:
+            if pivot_offsets is not None:
+                t = i / (total - 1)
+                center = torch.tensor([(t - .5) * BASELINE, 0., 0.], dtype=torch.float32)
+                view = world_to_camera(R, center)
+                rgb = next(render_frames_with_scene_distance(sp, [view], K, original_w, H,
+                    background=(1.,1.,1.), backend='metal'))
+                temp_path = folder / 'render.png'
+                write_png(rgb, temp_path, original_w, H)
+                with Image.open(temp_path) as im:
+                    frame = im.convert('RGB')
+                if a.soften_depth_edges and a.edge_soften_strength > 0:
+                    mask = projected_mask(sp, view, K, original_w, H, BASELINE, injectz_far_clip, a.edge_soften_radius)
+                    softened = soften(frame, mask, a.edge_soften_radius, a.edge_soften_strength)
+                    frame.close(); frame = softened
+                x = pivot_offsets[i]
+                cropped = frame.crop((x, 0, x + pivot_width, H))
+                frame.close(); frame = cropped
+            elif i == 0:
                 frame = left_img.copy()
             elif i == total - 1:
                 frame = right_img.copy()

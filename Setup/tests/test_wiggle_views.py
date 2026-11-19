@@ -1,15 +1,19 @@
 """Exercise the production wiggle export block with synthetic camera renders."""
 import ast
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 from PIL import Image
+import numpy as np
 
 root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(root / 'Reframe'))
+sys.path.insert(0, str(root / 'SHARP'))
 import SharedStereoFormats  # noqa: F401
 
 module = ast.parse((root / 'SHARP/injectz_sharp_render.py').read_text())
@@ -23,6 +27,7 @@ class Torch:
     def tensor(value, dtype=None): return value
 
 class Arguments:
+    wiggle_pivot_request = None
     wiggle_frames = 60
     wiggle_fps = 24
     wiggle_border = 0
@@ -53,10 +58,32 @@ with tempfile.TemporaryDirectory() as tmp:
         assert first.size == last.size == (40, 30)
         assert first.getpixel((20, 15)) == (255, 0, 0)
         assert last.getpixel((20, 15)) == (0, 0, 255)
+    # A chosen pivot uses a separately rendered common-overlap sequence,
+    # leaving the ordinary still-eye images untouched.
+    class Tensor:
+        def __init__(self, value): self.value = np.asarray(value)
+        def detach(self): return self
+        def cpu(self): return self
+        def numpy(self): return self.value
+        def __getitem__(self, index): return self.value[index]
+    class Splats:
+        means = Tensor([[0, 0, 2]])
+        opacities = Tensor([1])
+    args = Arguments(); args.wiggle_frames = 4
+    args.wiggle_pivot_request = folder/'pivot.request'
+    args.wiggle_pivot_request.with_suffix('.response').write_text(json.dumps({'mode':'point','x':.5,'y':.5}))
+    env.update(a=args, sp=Splats(), K=Tensor([[100,0,20],[0,100,15],[0,0,1]]),
+               PHOTO=Path('pivot.jpg'), json=json, time=time)
+    exec(compiled, env)
+    pivot_views = sorted((folder/'pivot_InjectZ_SHARP_Views_Baseline0.060').glob('*.png'))
+    assert len(pivot_views) == 6
+    with Image.open(pivot_views[0]) as first, Image.open(pivot_views[-1]) as last:
+        assert first.size == last.size == (37, 30)
+    assert env['left_img'].size == env['right_img'].size == (40, 30)
     assert not list(folder.glob('*.mp4'))
     if shutil.which('ffmpeg'):
         args = Arguments(); args.wiggle_frames = 4; args.no_wiggle_video = False
-        args.export_wiggle_views = False; env['a'] = args
+        args.export_wiggle_views = False; env['a'] = args; env['PHOTO'] = Path('test.jpg')
         exec(compiled, env)
         assert (folder/'test_InjectZ_SHARP_Wiggle_Baseline0.060.mp4').stat().st_size > 0
         args.export_wiggle_views = True
