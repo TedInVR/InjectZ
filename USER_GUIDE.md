@@ -7,7 +7,7 @@ This guide explains the current photo-conversion app. If you have not installed 
 ## Your first conversion
 
 1. Open **InjectZ.app** in your **InjectZ** folder, or use your existing Dock icon.
-2. Click **Choose Photo…** for a 2D photograph, or drag an image into the window and identify it as a single photo or a stereo pair. See **Open an existing stereo image** for stereo inputs.
+2. Click **Choose Photo…** for a 2D photograph, or drag one image into the window to load it as a 2D photo. See **Open an existing stereo image** for stereo inputs.
 3. Select an **engine**: **SHARP (Gaussian splats)**, **IW3**, or **Apple Reframe**. Choose an engine whose setup is complete and whose model terms permit your use.
 4. Choose a **depth** setting. With SHARP or Reframe, **Medium** is a useful starting point. With IW3, try **1.0 or 2.0** for an initial comparison; its default of 5.0 is considerably stronger.
 5. Check the output format you want. If you are unsure, use **Parallel** for a side-by-side stereo pair, or **Anaglyph Dubois** if you have red/cyan glasses.
@@ -75,7 +75,7 @@ The five common stereo-format checkboxes stay on the main screen. Click **Additi
 
 You can reformat an existing stereo pair without making a new 2D-to-3D conversion.
 
-1. Choose **File → Open Stereo Image…**, or drag one image onto the app. Select **Parallel (Left / Right)** or **Crossview (Right / Left)** in the arrangement dialog. A single dropped image can instead be identified as a **Single 2D Photo** for ordinary conversion.
+1. Choose **File → Open Stereo Image…** and select **Parallel (Left / Right)** or **Crossview (Right / Left)** in the arrangement dialog. A single image dropped onto the app is loaded as a 2D photo.
 2. To use two separate eye files, choose **File → Open Left and Right Images…** and select exactly two images, or drag both onto the app. The dialog shows their filenames; choose which is the left eye.
 3. Select one or more output formats, optional framing, and, if desired, **Save separate left/right images**. Click **Convert**. Inject Z uses the imported eyes for still-image outputs rather than generating a replacement pair.
 

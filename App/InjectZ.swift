@@ -1199,7 +1199,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func receiveDroppedImages(_ urls: [URL]) {
-        if urls.count == 1 { chooseStereoOrder(urls[0], includePhotoChoice: true) }
+        if urls.count == 1 { selectPhoto(urls[0]) }
         else { chooseEyeOrder(urls) }
     }
 

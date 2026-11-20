@@ -1,3 +1,7 @@
+# 0.3.18 — Simpler photo drop
+
+- Load a single dropped image directly as a 2D photo, without an arrangement dialog.
+
 # 0.3.17 — Wigglegram pivot selection
 
 - Choose a point to keep approximately steady in SHARP wigglegrams and exported views, or retain automatic alignment.
